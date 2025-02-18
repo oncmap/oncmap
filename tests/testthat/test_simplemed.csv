@@ -1,0 +1,15 @@
+﻿Patient:  (ID: ABC 99),,,,,,
+,Event ID,Device SN,Event Type,Details,Create Time,is Rpm event
+,1239663,12345,Pill was taken,Fri 4,"11/30/2023, 9:00:20 PM",FALSE
+,1238736,12345,Pill was not taken 2nd reminder,Fri 1,"11/30/2023, 10:00:00 AM",FALSE
+,1238666,12345,Pill was not taken,Fri 1,"11/30/2023, 9:30:00 AM",FALSE
+,1238360,12345,Wrong cell opened,Fri 1,"11/30/2023, 7:29:55 AM",FALSE
+,1238076,12345,Periodic test,Excellent,"11/30/2023, 3:48:02 AM",FALSE
+,1237687,12345,Pill was taken,Thu 4,"11/29/2023, 9:05:25 PM",FALSE
+,1236737,12345,Pill was not taken 2nd reminder,Thu 1,"11/29/2023, 10:00:00 AM",FALSE
+,1236659,12345,Pill was not taken,Thu 1,"11/29/2023, 9:30:00 AM",FALSE
+,1236072,12345,Periodic test,Excellent,"11/29/2023, 3:58:04 AM",FALSE
+,1235535,12345,Pill was taken,Wed 4,"11/28/2023, 9:05:12 PM",FALSE
+,1234745,12345,Pill was not taken 2nd reminder,Wed 1,"11/28/2023, 10:00:00 AM",FALSE
+,1234673,12345,Pill was not taken,Wed 1,"11/28/2023, 9:30:00 AM",FALSE
+,1234286,12345,Wrong cell opened,Wed 1,"11/28/2023, 7:26:34 AM",FALSE

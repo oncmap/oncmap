@@ -1,0 +1,15 @@
+﻿Patient,Project,Package ID,Regimen ID,Package Label,Patient Dose Index,Dose Date,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label,Adherent
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,1,2023-Apr-26,2023-Apr-26T13:46:48-04:00,2023-Apr-26T15:46:18+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,2,,2023-Apr-26T13:47:48-04:00,2023-Apr-26T15:47:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,3,,2023-Apr-26T13:48:48-04:00,2023-Apr-26115:48:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,4,,2023-Apr-26T18:09:48-04:00,2023-Apr-26T20:09:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,5,2023-Apr-28,2023-Apr-28T09:45:48-01:00,2023-Apr-28711:15:418+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,6,,2023-Apr-28T13:15:48-04:00,2023-Aor-28T15:15:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,7,,2023-Apr-28T17:12:48-04:00,2023-Apr-28T19:12:48÷00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,8,2023-May-02,2023-May-02T08:34:48-04:00,2023-May-02T12:34:48÷00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,9,,2023-May-02T10:50:48-04:00,2023-May-02T14:50:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,10,2023-May-03,2023-May-03T13:55:48-04:00,2023-May-03T17:55:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,11,,2023-May-03T16:28:48-04:00,2023-May-03T20:28:48+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,12,2023-May-05,2023-May-05T14:33:49-04:00,2023-May-05T18:33:49+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,13,,2023-May-05T17:19:49-04:00,2023-May-05T21:19:49+00:00,--,Study Drug,--
+Test9999,TEST,100123456-BR9,"7 days a week, 2 times a day",eCap,14,2023-May-10,2023-May-10T09:28:49-04:00,2023-May-10T13:28:49+00:00,--,Study Drug,--

@@ -1,0 +1,4 @@
+﻿Site ID,Subject ID,Kit ID,Package ID,Dose Regimen,Dose Index,Dose Date,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label,Compliant
+1,--,COMPASS,1234,100012345-BR9,100012345-BR9,,1,2023-09-14,2023-09-14T18:19:00-04:00,2023-09-14T22:19:00+00:00,--
+,,,,,,,2,2023-09-15,2023-09-15T20:00:00-04:00,2023-09-16T00:00:00+00:00,--
+,,,,,,,3,2023-09-16,2023-09-16T21:00:00-04:00,2023-09-17T01:00:00+00:00,--

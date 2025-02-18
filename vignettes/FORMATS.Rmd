@@ -1,0 +1,104 @@
+---
+title: "FORMATS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{FORMATS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(oncmap)
+```
+
+ECAP is the only format with Timezone included in the timestamp.
+ADHERETECH has a separate column for Timezone `Patient_Timezone`
+
+
+## ECAP OLD
+* TZ present -- FIXME:
+*    `tz_colon_fix` = FALSE,
+* Device ID column "Package ID"
+* No defined headers
+* Patient ID column "Subject ID"
+* Datetime column "Dose Timestamp",
+* Datetime format "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
+
+## ECAP1
+NEEDS TZ fix as well
+
+The same as ECAP OLD:
+* Datetime column and format
+
+Different from ECAP OLD:
+* Patient ID column "Patient ID",
+* Device ID column "ECM ID",
+* Header line "Index,Patient ID,ECM ID,Dose #,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label",
+
+## ECAP2
+NEEDS TZ fix as well
+
+The same as ECAP1:
+* Datetime column
+
+Different from ECAP1:
+* Datetime format changed -- month is now 3 letter abbreviation i.e. '2022-May-10T07:28:49-04:00'
+* Device ID column "Package ID",
+* Header line "Patient,Project,Package ID,Regimen ID,Package Label,Patient Dose Index,Dose Date,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label,Adherent",
+* Patient ID column "Patient",
+
+
+## ECAP2XLS
+The same as ECAP2 except
+* Datetime format changed back to ECAP1 -- month is 2 digits i.e. '2022-05-10T07:28:49-04:00'
+* Header line "Package Index,Study ID,Site ID,Subject ID,Kit ID,Package ID,Dose Regimen,Dose Index,Dose Date,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label,Compliant",
+* Patient ID columnt "Study ID",
+
+## ECAP3
+The same as ECAP2 except
+*  Header line "Patient,Project,Package ID,Regimen ID,Config Label,Patient Dose Index,Dose Timestamp,Dose Timestamp UTC,Medications,Dose Group,Dose Label,Adherent,Type,eDiary Status,Original Timestamp,reason",
+    
+    datetime_format = "%Y-%m-%dT%H:%M:%S%z", # "YYYY-MMM-DDTHH:MM:SS-TZ",
+    tz_colon_fix = TRUE,
+
+## MEMS
+* No TZ present
+* Skip first line -- contains who exported and when
+* Datetime column "Date"
+* Device ID column "Identification number",
+* headers = "Date,IntakeStatusDisplayResource,Indication / pathology,Identification number,Label,CavityLabel,IntakeChangeReasons,",
+* Datetime format "%m/%d/%Y %I:%M:%S %p", # "m/d/yyyy hh:mm:ss am",
+
+
+## MEMS2
+Based on MEMS except:
+* headers changed (added Comment column) to  "Date,IntakeStatusDisplayResource,Indication / pathology,Identification number,Label,CavityLabel,Comment,IntakeChangeReasons",
+* Datetime format changed "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
+* Accept lines where "IntakeStatusDisplayResource!=Missing day"
+
+
+## SIMPLEMED
+* No TZ present
+* First line has patient id "Patient:  \\(ID: ([^)]*)\\).*",
+* Device ID header = "Device SN",
+* Headers line ",Event ID,Device SN,Event Type,Details,Create Time,is Rpm event",
+* Datetime column "Create Time",
+* Datetime format "%m/%d/%Y, %I:%M:%S %p", # "m/d/yyyy, hh:mm:ss am",
+* Accept lines where "Event Type==Pill was taken",
+
+## ADHERETECH
+*** FIXME: TZ present (column Patient_Timezone)
+
+* Device ID column "Device_UID",
+* Headers line "Patient_UID,Device_UID,Site,Medication,Reminder_Sent,Status,Deadline_UTC,Dose_Date_UTC,Time_Recorded_UTC,Patient_Timezone,Deadline_Patient_Timezone,Dose_Date_Patient_Timezone,Time_Recorded_Patient_Timezone",
+* Patient ID column "Patient_UID",
+* Datetime column "Time_Recorded_Patient_Timezone",
+* Datetime format "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
+* Accept lines where "Status!=MISSED",
