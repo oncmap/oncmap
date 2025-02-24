@@ -5,17 +5,22 @@
 #' @param patinfo Patient info - patient specific information
 #' @param adhstart Report adherence start date
 #' @param adhend Report adherence end date
+#' @return A list of output variables
+#' \itemize{
+#'   \item \code{report} - Per period adherence statistic
+#'   \item \code{adh} - Summary adherence statistic
+#' }
 #' @importFrom readr read_csv cols
 #' @importFrom methods is
 #' @importFrom dplyr between select mutate if_else summarise %>%
 #' @importFrom hms as_hms
 #' @import zoo
 #' @export
-report_adherence <- function(all_periods, timestamps, med, patinfo=list(), adhstart = NULL, adhend = NULL) {
+report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adhstart = NULL, adhend = NULL) {
   # TODO: if incoming dates in Date -- convert to POSIXct
 
-  if (is(patinfo$start_date, "character")) patinfo$start_date <- as.POSIXct(patinfo$start_date,tz="UTC")
-  if (is(patinfo$end_date, "character")) patinfo$end_date <- as.POSIXct(patinfo$end_date,tz="UTC")
+  if (is(patinfo$start_date, "character")) patinfo$start_date <- as.POSIXct(patinfo$start_date, tz = "UTC")
+  if (is(patinfo$end_date, "character")) patinfo$end_date <- as.POSIXct(patinfo$end_date, tz = "UTC")
   # if (is(patinfo$start_date, "NULL"))  patinfo$start_date <- as.POSIXct(format(as.POSIXct(min(timestamps))-24*60*60,format = "%Y-%m-%d"))
   # if (is(patinfo$end_date, "NULL"))  patinfo$end_date <- as.POSIXct(format(as.POSIXct(max(timestamps))+24*60*60,format = "%Y-%m-%d"))
 
@@ -23,13 +28,13 @@ report_adherence <- function(all_periods, timestamps, med, patinfo=list(), adhst
   if (is.null(adhstart)) adhstart <- patinfo$start_date
   if (is.null(adhend)) adhend <- patinfo$end_date
 
-  if (is.null(adhstart)) adhstart <- as.Date(min(timestamps$timestamps),tz="UTC")
-  if (is.null(adhend)) adhend <- as.Date(max(timestamps$timestamps),tz="UTC")
+  if (is.null(adhstart)) adhstart <- as.Date(min(timestamps$timestamps), tz = "UTC")
+  if (is.null(adhend)) adhend <- as.Date(max(timestamps$timestamps), tz = "UTC")
 
-  if (is(adhstart, "character")) adhstart <- as.POSIXct(adhstart,tz="UTC")
-  if (is(adhend, "character")) adhend <- as.POSIXct(adhend,tz="UTC")
-  if (is(adhstart, "Date")) adhstart <- as.POSIXct(as.character(adhstart), format = "%Y-%m-%d",tz="UTC")
-  if (is(adhend, "Date")) adhend <- as.POSIXct(as.character(adhend), format = "%Y-%m-%d",tz="UTC")
+  if (is(adhstart, "character")) adhstart <- as.POSIXct(adhstart, tz = "UTC")
+  if (is(adhend, "character")) adhend <- as.POSIXct(adhend, tz = "UTC")
+  if (is(adhstart, "Date")) adhstart <- as.POSIXct(as.character(adhstart), format = "%Y-%m-%d", tz = "UTC")
+  if (is(adhend, "Date")) adhend <- as.POSIXct(as.character(adhend), format = "%Y-%m-%d", tz = "UTC")
   adhend_date_plus_day <- adhend + lubridate::days(1)
 
   all_periods$med <- med
@@ -58,12 +63,12 @@ report_adherence <- function(all_periods, timestamps, med, patinfo=list(), adhst
     all_periods, 1,
     function(x) {
       times <- substring(timestamps[dplyr::between(
-        if_else(excluded == 0, timestamps$timestamps, as.POSIXct("1970-01-01",tz="UTC")),
-        as.POSIXct(x["start"],tz="UTC"),
-        as.POSIXct(x["end"],tz="UTC")
+        if_else(excluded == 0, timestamps$timestamps, as.POSIXct("1970-01-01", tz = "UTC")),
+        as.POSIXct(x["start"], tz = "UTC"),
+        as.POSIXct(x["end"], tz = "UTC")
       ), ]$timestamps, 12)
-      mtime1 <- substring(as.character(all_periods[1,]$start),12)
-      paste0(ifelse(times<mtime1,paste0(times,"*"),times), collapse = ",")
+      mtime1 <- substring(as.character(all_periods[1, ]$start), 12)
+      paste0(ifelse(times < mtime1, paste0(times, "*"), times), collapse = ",")
     }
   )
 
@@ -71,9 +76,9 @@ report_adherence <- function(all_periods, timestamps, med, patinfo=list(), adhst
     all_periods, 1,
     function(x) {
       paste0(sub(" ", "", timestamps[dplyr::between(
-        if_else(excluded == 0, timestamps$timestamps, as.POSIXct("1970-01-01",tz="UTC")),
-        as.POSIXct(x["start"],tz="UTC"),
-        as.POSIXct(x["end"],tz="UTC")
+        if_else(excluded == 0, timestamps$timestamps, as.POSIXct("1970-01-01", tz = "UTC")),
+        as.POSIXct(x["start"], tz = "UTC"),
+        as.POSIXct(x["end"], tz = "UTC")
       ), ]$diff), collapse = ",")
     }
   )
@@ -122,5 +127,5 @@ report_adherence <- function(all_periods, timestamps, med, patinfo=list(), adhst
   # daysdose <- sum("dosetkn\" WHEN \"nonmon\" = 0)" / sum(nonmon = 0)
   # perdoses <- sum("opens"\" WHEN \"nonmon\" = 0)" / sum("doserx"\"" WHEN "nonmon\""=0
 
-  return(list(report = all_periods, adh = adh_df, adhstart=adhstart, adhend_date_plus_day=adhend_date_plus_day ))
+  return(list(report = all_periods, adh = adh_df, adhstart = adhstart, adhend_date_plus_day = adhend_date_plus_day))
 }

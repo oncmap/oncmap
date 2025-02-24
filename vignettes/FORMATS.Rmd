@@ -18,13 +18,9 @@ knitr::opts_chunk$set(
 library(oncmap)
 ```
 
-ECAP is the only format with Timezone included in the timestamp.
-ADHERETECH has a separate column for Timezone `Patient_Timezone`
-
+All timestamps are assumed in the patient's timezone and then internally encoded as UTC to avoid inconsistencies with operator settings.
 
 ## ECAP OLD
-* TZ present -- FIXME:
-*    `tz_colon_fix` = FALSE,
 * Device ID column "Package ID"
 * No defined headers
 * Patient ID column "Subject ID"
@@ -32,8 +28,6 @@ ADHERETECH has a separate column for Timezone `Patient_Timezone`
 * Datetime format "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
 
 ## ECAP1
-NEEDS TZ fix as well
-
 The same as ECAP OLD:
 * Datetime column and format
 
@@ -43,8 +37,6 @@ Different from ECAP OLD:
 * Header line "Index,Patient ID,ECM ID,Dose #,Dose Timestamp,Dose Timestamp UTC,Dose Group,Dose Label",
 
 ## ECAP2
-NEEDS TZ fix as well
-
 The same as ECAP1:
 * Datetime column
 
@@ -66,10 +58,8 @@ The same as ECAP2 except
 *  Header line "Patient,Project,Package ID,Regimen ID,Config Label,Patient Dose Index,Dose Timestamp,Dose Timestamp UTC,Medications,Dose Group,Dose Label,Adherent,Type,eDiary Status,Original Timestamp,reason",
     
     datetime_format = "%Y-%m-%dT%H:%M:%S%z", # "YYYY-MMM-DDTHH:MM:SS-TZ",
-    tz_colon_fix = TRUE,
 
 ## MEMS
-* No TZ present
 * Skip first line -- contains who exported and when
 * Datetime column "Date"
 * Device ID column "Identification number",
@@ -85,7 +75,6 @@ Based on MEMS except:
 
 
 ## SIMPLEMED
-* No TZ present
 * First line has patient id "Patient:  \\(ID: ([^)]*)\\).*",
 * Device ID header = "Device SN",
 * Headers line ",Event ID,Device SN,Event Type,Details,Create Time,is Rpm event",
@@ -94,8 +83,6 @@ Based on MEMS except:
 * Accept lines where "Event Type==Pill was taken",
 
 ## ADHERETECH
-*** FIXME: TZ present (column Patient_Timezone)
-
 * Device ID column "Device_UID",
 * Headers line "Patient_UID,Device_UID,Site,Medication,Reminder_Sent,Status,Deadline_UTC,Dose_Date_UTC,Time_Recorded_UTC,Patient_Timezone,Deadline_Patient_Timezone,Dose_Date_Patient_Timezone,Time_Recorded_Patient_Timezone",
 * Patient ID column "Patient_UID",

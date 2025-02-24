@@ -26,6 +26,13 @@ report_adherence(
 
 \item{adhend}{Report adherence end date}
 }
+\value{
+A list of output variables
+\itemize{
+  \item \code{report} - Per period adherence statistic
+  \item \code{adh} - Summary adherence statistic
+}
+}
 \description{
 Report standarized output of the adherence processing
 }

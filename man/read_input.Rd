@@ -23,17 +23,22 @@ read_input(
 
 \item{infile_data_output}{Include infile data frame in the result}
 }
+\value{
+A list of output variables
+\itemize{
+  \item \code{format} - Detected input format name
+  \item \code{format_def} - Detected format definition
+  \item \code{patient_id} - Extracted patient_id
+  \item \code{device_id} - Extracted device_id
+  \item \code{data} - Extracted timestamps 
+  \item \code{log} - Log of the format detection
+  \item \code{infile_data} - Raw input data
+}
+}
 \description{
 Read input file
 }
 \examples{
-# print(read_input("tests/testthat/ecap1.csv"))
-# print(read_input("tests/testthat/ecap2.csv"))
-# print(read_input("tests/testthat/simplemed.csv"))
-# print(read_input("tests/testthat/mems.csv"))
-# print(read_input("tests/testthat/adheretech.csv"))
-# print(read_input("tests/testthat/ecap.csv"))
-# print(read_input("tests/testthat/1077.csv"))
-# print(read_input("tests/testthat/noformat.csv"))
-# print(read_input("tests/testthat/nocsv.csv"))
+  input_file <- system.file('extdata', 'sample-data-ecap2.csv', package = 'oncmap')
+  input <- read_input("tests/testthat/ecap1.csv")
 }

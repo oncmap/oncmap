@@ -1,15 +1,15 @@
 Package: oncmap
 Type: Package
-Title: Analyze Data from Electronic Adherence Monitoring Devices for Oncology and Other Medications
-Version: 0.1.5
+Title: Analyze Data from Electronic Adherence Monitoring Devices
+Version: 0.1.6
 Authors@R: c(
-    person("Michal", "Kouril", , "Michal.Kouril@cchmc.org",
+    person("Michal", "Kouril", email = "Michal.Kouril@cchmc.org",
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4786-7934")),
-    person("Meghan", "McGrady", , "Meghan.McGrady@cchmc.org",
+    person("Meghan", "McGrady", email = "Meghan.McGrady@cchmc.org",
            role = c("aut"), comment = c(ORCID = "0000-0002-3150-3239")),
-    person("Mara", "Constance", , "Constance.Mara@cchmc.org",
+    person("Mara", "Constance", email = "Constance.Mara@cchmc.org",
            role = c("aut"), comment = c(ORCID = "0000-0002-6776-8060")),
-    person("Kevin", "Hommel", , "Kevin.Hommel@cchmc.org",
+    person("Kevin", "Hommel", email = "Kevin.Hommel@cchmc.org",
            role = c("aut"), comment = c(ORCID = "0000-0002-9913-509X"))
            )
 Description: Medication adherence, defined as medication-taking behavior that aligns with the agreed-upon 
@@ -18,7 +18,7 @@ Description: Medication adherence, defined as medication-taking behavior that al
     pill bottles or boxes that contain a computer chip that records the date and time of each 
     opening (or “actuation”). Before researchers can use EAMD data, they must apply a series of 
     decision rules to transform actuation data into adherence data. 
-    The purpose of this R package (OncMAP) is to transform EAMD actuations in the form of a raw .csv file, 
+    The purpose of this R package ('oncmap') is to transform EAMD actuations in the form of a raw .csv file, 
     information about the patient, regimen, and non-monitored periods into two daily adherence values -- 
     Dose Taken and Correct Dose Taken.
 License: MIT + file LICENSE

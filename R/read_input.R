@@ -4,16 +4,19 @@
 #' @param exclude_formats Which formats to exclude from checking
 #' @param formats_def New formats definition
 #' @param infile_data_output Include infile data frame in the result
+#' @return A list of output variables
+#' \itemize{
+#'   \item \code{format} - Detected input format name
+#'   \item \code{format_def} - Detected format definition
+#'   \item \code{patient_id} - Extracted patient_id
+#'   \item \code{device_id} - Extracted device_id
+#'   \item \code{data} - Extracted timestamps
+#'   \item \code{log} - Log of the format detection
+#'   \item \code{infile_data} - Raw input data
+#' }
 #' @examples
-#' # print(read_input("tests/testthat/ecap1.csv"))
-#' # print(read_input("tests/testthat/ecap2.csv"))
-#' # print(read_input("tests/testthat/simplemed.csv"))
-#' # print(read_input("tests/testthat/mems.csv"))
-#' # print(read_input("tests/testthat/adheretech.csv"))
-#' # print(read_input("tests/testthat/ecap.csv"))
-#' # print(read_input("tests/testthat/1077.csv"))
-#' # print(read_input("tests/testthat/noformat.csv"))
-#' # print(read_input("tests/testthat/nocsv.csv"))
+#' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
+#' input <- read_input("tests/testthat/ecap1.csv")
 #' @importFrom readr read_csv cols
 #' @importFrom readxl read_excel read_xlsx
 #' @importFrom tools file_ext file_path_sans_ext
@@ -39,7 +42,6 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     filtered_formats <- filtered_formats[!(rownames(filtered_formats) %in% exclude_formats), ]
   }
   # attempt to only match formats in filtered_formats
-
 
   # iterate through enabled formats for file specified by infile parameter
   for (i in 1:nrow(filtered_formats)) {
@@ -141,7 +143,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       cond <- gsub("([^=]*)([!=]=)([^=]*)", "\\2", format$filter)
       val <- gsub("([^=]*)([!=]=)([^=]*)", "\\3", format$filter)
       # filter_str <- paste0("data <- data[data$`", key, '`=="', val, '",]')
-      filter_str <- paste0("data <- data[data$`", key, '`',cond,'"', val, '",]')
+      filter_str <- paste0("data <- data[data$`", key, "`", cond, '"', val, '",]')
       # print(filter_str)
       eval(parse(text = filter_str))
     }
@@ -201,27 +203,15 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     tmp_timestamp_infile <- data$timestamp_infile
 
     # remove ":" from timestamp if exists to allow for strptime (expecting TZ as -0400 instead of -04:00)
-    # if (format$tz_colon_fix) {
-    #   tmp_timestamp_infile <- sub(":([0-9][0-9])$","\\1",tmp_timestamp_infile)
-    # }
-
-    data$timestamp <- as.POSIXct(strptime(tmp_timestamp_infile, format = format$datetime_format, tz="UTC"))
-    if (all(is.na(data$timestamp))) {
-        log <- rbind(log, data.frame(format = format_name, message = "All timestamps are NA. Skipping this format"))
-        next
+    if (format$tz_colon_fix) {
+      tmp_timestamp_infile <- sub("[+-][0-9][0-9]:[0-9][0-9]$", "", tmp_timestamp_infile)
     }
 
-    # subtract with and without timezone -- to get offset from est
-    # est_offset <- unique(as.POSIXct(strptime(data$timestamp_infile, format = gsub("%z","",format$datetime_format)))-data$timestamp)
-    #
-    # if (length(est_offset) != 1) {
-    #   log <- rbind(log, data.frame(format = format_name, message = paste("Unable to determine timezone offset",paste(est_offset,collapse=","))))
-    #   next
-    # }
-    #
-    # if (est_offset != 0) {
-    #    data$timestamp <- data$timestamp + est_offset*3600
-    # }
+    data$timestamp <- as.POSIXct(strptime(tmp_timestamp_infile, format = format$datetime_format, tz = "UTC"))
+    if (all(is.na(data$timestamp))) {
+      log <- rbind(log, data.frame(format = format_name, message = "All timestamps are NA. Skipping this format"))
+      next
+    }
 
     log <- rbind(log, data.frame(format = format_name, message = "ok"))
 

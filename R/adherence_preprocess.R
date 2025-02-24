@@ -3,13 +3,16 @@
 #' @param regimen Regimen - regimen definition
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
+#' @return A list of output variables
+#' \itemize{
+#'   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
+#' }
 #' @importFrom readr read_csv cols
 #' @importFrom methods is
 #' @importFrom dplyr between if_else select mutate
 #' @import lubridate
 #' @export
-adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=data.frame()) {
-
+adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit = data.frame()) {
   # Examples:
   #     timestamps <- input$data$timestamp
   #     regimen <- regimens[1,]
@@ -46,22 +49,18 @@ adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=d
   # start_date depends on start_time -- if min(timestamp) time is after start_time then take current date
   #                                     otherwise the previous
   if (is(patinfo$day_start_time, "NULL")) patinfo$day_start_time <- "00:00"
-  day_start_hour <- as.numeric(strptime(patinfo$day_start_time, format = "%H:%M", tz="UTC") - strptime("00:00", format = "%H:%M", tz="UTC"))
+  day_start_hour <- as.numeric(strptime(patinfo$day_start_time, format = "%H:%M", tz = "UTC") - strptime("00:00", format = "%H:%M", tz = "UTC"))
 
   if (is(patinfo$start_date, "NULL")) {
-    # patinfo$start_date <- as.POSIXct(format(as.POSIXct(min(timestamps)) - 24 * 60 * 60, format = "%Y-%m-%d"))
-    patinfo$start_date <- as.POSIXct(format(as.POSIXct(min(timestamps)) - day_start_hour * 60 * 60, format = "%Y-%m-%d"),tz="UTC")
-    # patinfo$start_date <- as.POSIXct(format(as.POSIXct(min(timestamps)) , format = "%Y-%m-%d"))
-    print(paste("Defaulting patinfo$start_date:",patinfo$start_date))
+    patinfo$start_date <- as.POSIXct(format(as.POSIXct(min(timestamps)) - day_start_hour * 60 * 60, format = "%Y-%m-%d"), tz = "UTC")
+    debug_print(paste("Defaulting patinfo$start_date:", patinfo$start_date))
   }
   if (is(patinfo$end_date, "NULL")) {
-    # patinfo$end_date <- as.POSIXct(format(as.POSIXct(max(timestamps)) + 24 * 60 * 60, format = "%Y-%m-%d"))
-    patinfo$end_date <- as.POSIXct(format(as.POSIXct(max(timestamps)) + day_start_hour * 60 * 60, format = "%Y-%m-%d"))
-    # patinfo$end_date <- as.POSIXct(format(as.POSIXct(max(timestamps)) , format = "%Y-%m-%d"))
-    print(paste("Defaulting patinfo$end_date:",patinfo$end_date))
+    patinfo$end_date <- as.POSIXct(format(as.POSIXct(max(timestamps), tz = "UTC") - day_start_hour * 60 * 60, format = "%Y-%m-%d"), tz = "UTC")
+    debug_print(paste("Defaulting patinfo$end_date:", patinfo$end_date))
   }
-  if (is(patinfo$start_date, "character")) patinfo$start_date <- as.POSIXct(patinfo$start_date,tz="UTC")
-  if (is(patinfo$end_date, "character")) patinfo$end_date <- as.POSIXct(patinfo$end_date,tz="UTC")
+  if (is(patinfo$start_date, "character")) patinfo$start_date <- as.POSIXct(patinfo$start_date, tz = "UTC")
+  if (is(patinfo$end_date, "character")) patinfo$end_date <- as.POSIXct(patinfo$end_date, tz = "UTC")
 
   # TODO: warn if time exists -- we are stripping
 
@@ -72,20 +71,17 @@ adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=d
   # TODO: validate nonmonit is a data.frame of start/stop dates and POSIXct (convert if Date)
   if (!is.null(nonmonit)) {
     if (!is(nonmonit, "data.frame")) stop("nonmonit type error")
-    if (is(nonmonit$start, "character")) nonmonit$start <- as.POSIXct(nonmonit$start,tz="UTC")
-    if (is(nonmonit$end, "character")) nonmonit$end <- as.POSIXct(nonmonit$end,tz="UTC")
+    if (is(nonmonit$start, "character")) nonmonit$start <- as.POSIXct(nonmonit$start, tz = "UTC")
+    if (is(nonmonit$end, "character")) nonmonit$end <- as.POSIXct(nonmonit$end, tz = "UTC")
   }
 
   debug_print("nonmonit check \u2713")
-
-  # TODO: Timezones
 
   timestamps_ordered <- timestamps[order(timestamps)]
   ordering_changes <- any(!(timestamps == timestamps_ordered))
   timestamps <- timestamps_ordered
 
   debug_print(paste0("timestamp ordering -- changes detected: ", ordering_changes))
-
 
   # PROCESSING
 
@@ -97,17 +93,16 @@ adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=d
 
   # For the days, any openings up to 23 hours 59 minutes later will go on that day so:
   # If a day starts at 10 pm, 2020-01-01 would include any openings from 2020-01-01 10:00:00 pm to 2020-01-02 9:59:59
-  #   2020-01-01 11pm -- open -- does it go towards 2020-01-02 or 2020-01-01? - 2020-01-01
-  #   2020-01-01 9pm -- open -- does it go toward 2020-01-01 or 2020-12-31? 12-31-2020
+  #   2020-01-01 11pm -- open -- does it go towards  2020-01-01
+  #   2020-01-01 9pm -- open -- does it go toward 2020-12-31
 
   day_start_sec <- day_start_hour * 3600
 
   # create a list of dates between start_date and end_date
 
-  # add 2 hours to account for DST changes -- to make sure we indeed capture only the dates between start_date and end_date (including)
-  all_dates <- seq(from = patinfo$start_date + 7200, to = patinfo$end_date + 7200, by = "day")
+  all_dates <- seq(from = patinfo$start_date, to = patinfo$end_date, by = "day")
   # trim time
-  all_dates <- as.POSIXct(format(all_dates, format = "%Y-%m-%d"),tz="UTC")
+  all_dates <- as.POSIXct(format(all_dates, format = "%Y-%m-%d"), tz = "UTC")
 
   # cartesian product of dates and periods
   all_periods <- expand.grid(period = day_periods_seq, day = all_dates)
@@ -133,7 +128,7 @@ adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=d
   # excluded <- rep(0, length(timestamps))
   # 1. remove the second if too close together
   # excluded <- if_else((timestamps - dplyr::lag(timestamps, default = as.POSIXct("1970-01-01"))) < (regimen$min_wait), 1, 0) # this '-' is using "auto" units -- we need "secs" explicitely
-  excluded <- if_else(difftime(timestamps, dplyr::lag(timestamps, default = as.POSIXct("1970-01-01",tz="UTC")),units = "secs") < (regimen$min_wait), 1, 0)
+  excluded <- if_else(difftime(timestamps, dplyr::lag(timestamps, default = as.POSIXct("1970-01-01", tz = "UTC")), units = "secs") < (regimen$min_wait), 1, 0)
 
   debug_print(paste0("timestamp exclude openings too close to the previous ones (within ", regimen$min_wait, " seconds) -- number of exclusions: ", sum(excluded == 1)))
 
@@ -141,29 +136,33 @@ adherence_preprocess <- function(timestamps, regimen, patinfo=list(), nonmonit=d
   # 4. exclude non_monit_dates
 
   if (!is.null(nonmonit) && !is.null(nonmonit$start) && !is.null(nonmonit$end)) {
-    nonmonit_start <- as.POSIXct(format(nonmonit$start, format = "%Y-%m-%d"),tz="UTC")
+    nonmonit_start <- as.POSIXct(format(nonmonit$start, format = "%Y-%m-%d"), tz = "UTC")
     nonmonit_start <- nonmonit_start + seconds(day_start_sec)
-    nonmonit_end <- as.POSIXct(format(nonmonit$end, format = "%Y-%m-%d"),tz="UTC")
-    nonmonit_end <- as.POSIXct(nonmonit_end + seconds(day_start_sec + 24 * 3600 - 1), tz="UTC")
-    all_periods$nonmon <- if_else(apply(all_periods, 1, function(x) any(nonmonit_start <= as.POSIXct(x["start"],tz="UTC") & as.POSIXct(x["end"],tz="UTC") <= nonmonit_end)), 1, 0)
+    nonmonit_end <- as.POSIXct(format(nonmonit$end, format = "%Y-%m-%d"), tz = "UTC")
+    nonmonit_end <- as.POSIXct(nonmonit_end + seconds(day_start_sec + 24 * 3600 - 1), tz = "UTC")
+    all_periods$nonmon <- if_else(apply(all_periods, 1, function(x) any(nonmonit_start <= as.POSIXct(x["start"], tz = "UTC") & as.POSIXct(x["end"], tz = "UTC") <= nonmonit_end)), 1, 0)
   } else {
     nonmonit_start <- c()
     nonmonit_end <- c()
     # all_periods$nonmon remains all 0
   }
 
-  end_date_plus_day <- patinfo$end_date + lubridate::days(1)
-  excluded <- if_else(`&`((excluded == 0), (timestamps < patinfo$start_date)), 2, excluded)
-  excluded <- if_else(`&`((excluded == 0), (timestamps >= end_date_plus_day)), 3, excluded)
+  # last timestamp could be the (end_date + starttime) + 24 hours
+  end_date_plus_day <- patinfo$end_date + lubridate::seconds(day_start_sec) + lubridate::days(1)
+  excluded <- if_else(`&`((excluded == 0), (timestamps < patinfo$start_date)), 2, excluded) # before start date
+  excluded <- if_else(`&`((excluded == 0), (timestamps >= end_date_plus_day)), 3, excluded) # after end date
   excluded <- if_else(`&`((excluded == 0), (sapply(timestamps, function(x) any(nonmonit_start <= x & x < nonmonit_end)))), 4, excluded)
+
+  debug_print(paste("patinfo$end_date", patinfo$end_date))
+  debug_print(paste("end_date_plus_day", end_date_plus_day))
 
   debug_print(paste0("timestamp exclude openings before, after monitored interval(between ", patinfo$start_date, " and ", patinfo$end_date, ") and within non-monitored intervals -- number of exclusions: ", sum(excluded == 2), ",", sum(excluded == 3), ",", sum(excluded == 4)))
 
   # MERGE SPREADSHEET, TIMESTAMPS and EXCLUSIONS
 
   # number of actual openings
-  select_timestamps <- if_else(excluded == 0, timestamps, as.POSIXct("1970-01-01",tz="UTC"))
-  all_periods$opens <- apply(all_periods, 1, function(x) sum(between(select_timestamps, as.POSIXct(x["start"],tz="UTC"), as.POSIXct(x["end"],tz="UTC"))))
+  select_timestamps <- if_else(excluded == 0, timestamps, as.POSIXct("1970-01-01", tz = "UTC"))
+  all_periods$opens <- apply(all_periods, 1, function(x) sum(between(select_timestamps, as.POSIXct(x["start"], tz = "UTC"), as.POSIXct(x["end"], tz = "UTC"))))
 
   return(list(all_periods = all_periods, timestamps = data.frame(timestamps = timestamps, excluded = excluded)))
 }

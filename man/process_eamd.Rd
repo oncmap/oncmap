@@ -41,9 +41,17 @@ process_eamd(
 
 \item{adhend}{Report adherence end date}
 }
+\value{
+A list containing variables:
+\itemize{
+  \item \code{report} - Per period adherence statistic
+  \item \code{adh} - Summary adherence statistic
+}
+}
 \description{
 Process input file and return adherence report
 }
 \examples{
-# print(process_eamd("tests/testthat/ecap1.csv"))
+  input_file <- system.file('extdata', 'sample-data-ecap2.csv', package = 'oncmap')
+  report <- process_eamd("tests/testthat/ecap1.csv")
 }

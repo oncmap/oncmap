@@ -20,6 +20,12 @@ adherence_preprocess(
 
 \item{nonmonit}{Non-monitored date intervals}
 }
+\value{
+A list of output variables
+\itemize{
+  \item \code{all_periods} - Processed timestamps into periods applying input parameters.
+}
+}
 \description{
 Pre-process time data for adherence
 }
