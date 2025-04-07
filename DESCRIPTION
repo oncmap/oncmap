@@ -1,7 +1,7 @@
 Package: oncmap
 Type: Package
 Title: Analyze Data from Electronic Adherence Monitoring Devices
-Version: 0.1.6
+Version: 0.1.7
 Authors@R: c(
     person("Michal", "Kouril", email = "Michal.Kouril@cchmc.org",
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4786-7934")),
@@ -21,7 +21,6 @@ Description: Medication adherence, defined as medication-taking behavior that al
     The purpose of this R package ('oncmap') is to transform EAMD actuations in the form of a raw .csv file, 
     information about the patient, regimen, and non-monitored periods into two daily adherence values -- 
     Dose Taken and Correct Dose Taken.
-License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
@@ -41,3 +40,4 @@ RoxygenNote: 7.3.1
 Depends: 
     R (>= 3.60)
 VignetteBuilder: knitr
+License: MIT + file LICENSE

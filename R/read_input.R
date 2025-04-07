@@ -61,7 +61,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
           # use read_csv in order to read in all data as characters
 
           # read.csv(infile,skip=format$skip_header_lines)
-          read_csv(infile, skip = format$skip_header_lines, col_types = cols(.default = "c"), name_repair = "minimal")
+          readr::read_csv(infile, skip = format$skip_header_lines, col_types = readr::cols(.default = "c"), name_repair = "minimal")
           # name_repair="universal")
           # name_repair=make.names)
         } else if (infile_extension == "xls") {
@@ -95,13 +95,29 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
 
     # gather the list of headers
     # FIXME: ignore ordering
-    infile_headers <- paste(names(infile_data), collapse = ",")
 
-    # if headers don't match the format -- try different format
-    if (!is.na(format$headers) && infile_headers != format$headers) {
-      # headers defined but mismatch headers
-      log <- rbind(log, data.frame(format = format_name, message = paste("headers defined but mismatch headers:", infile_headers)))
-      next
+    if (!is.na(format$headers)) {
+       infile_headers <- colnames(infile_data)
+       format_headers <- strsplit(format$headers,",")[[1]]
+
+       while (length(infile_headers) > 0 && infile_headers[length(infile_headers)] == "") {
+          infile_headers <- infile_headers[-length(infile_headers)]
+       }
+
+       # if different number of headers expected
+       if (length(format_headers) != length(infile_headers)) {
+         log <- rbind(log, data.frame(format = format_name, message = paste("headers defined but mismatch in number of expected headers:", paste0(infile_headers,collapse = ","),"vs",paste0(format_headers,collapse = ","))))
+         next
+       }
+
+       infile_headers[format_headers == ""] <- ""
+
+       # if headers don't match the format -- try different format
+       if (!all(infile_headers==format_headers)) {
+         # headers defined but mismatch headers
+         log <- rbind(log, data.frame(format = format_name, message = paste("headers defined but mismatch headers:", paste0(infile_headers,collapse = ","),"vs",paste0(format_headers,collapse = ","))))
+         next
+       }
     }
 
     # datetime is expected in format$datetime_header -- validates both format and data
