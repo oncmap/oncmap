@@ -127,6 +127,18 @@ input_formats <- rbind(
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
     filter = NA
+  ),
+  "clevercap" = data.frame(
+    skip_header_lines = 0,
+    header_line_patientid = NA,
+    patientid_filename = NA,
+    deviceid_header = "CleverKey",
+    headers = NA,
+    patientid_header = "PatientNumber",
+    datetime_header = "DateStamp",
+    datetime_format = "%m/%d/%Y %H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
+    tz_colon_fix = FALSE,
+    filter = "EventType==Taken"
   )
 )
 

@@ -1,7 +1,7 @@
 Package: oncmap
 Type: Package
 Title: Analyze Data from Electronic Adherence Monitoring Devices
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: c(
     person("Michal", "Kouril", email = "Michal.Kouril@cchmc.org",
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-4786-7934")),
