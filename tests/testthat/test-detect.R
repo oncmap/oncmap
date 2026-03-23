@@ -12,5 +12,6 @@ test_that("Detect formats", {
   # FIXME: NA patientid ok?
   expect_equal(read_input("test_adheretech.xlsx")$format, "adheretechxls")
   expect_equal(read_input("test_clevercap.xlsx")$format, "clevercap")
+  expect_equal(read_input("test_patchcap.csv")$format, "patchcap")
   expect_equal(read_input("noformat.csv")$format, NULL)
 })

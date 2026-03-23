@@ -139,6 +139,18 @@ input_formats <- rbind(
     datetime_format = "%m/%d/%Y %H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
     filter = "EventType==Taken"
+  ),
+  "patchcap" = data.frame(
+    skip_header_lines = 0,
+    header_line_patientid = NA,
+    patientid_filename = NA,
+    deviceid_header = NA,
+    headers = NA,
+    patientid_header = NA,
+    datetime_header = "Measurement Time",
+    datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
+    tz_colon_fix = FALSE,
+    filter = "Primary Value==1"
   )
 )
 
