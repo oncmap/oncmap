@@ -155,13 +155,16 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       # key != value
 
       # apply filter (infill might be needed)
-      key <- gsub("([^=]*)([!=]=)([^=]*)", "\\1", format$filter)
-      cond <- gsub("([^=]*)([!=]=)([^=]*)", "\\2", format$filter)
-      val <- gsub("([^=]*)([!=]=)([^=]*)", "\\3", format$filter)
-      # filter_str <- paste0("data <- data[data$`", key, '`=="', val, '",]')
-      filter_str <- paste0("data <- data[data$`", key, "`", cond, '"', val, '",]')
+      # key <- gsub("([^=]*)([!=]=)([^=]*)", "\\1", format$filter)
+      # cond <- gsub("([^=]*)([!=]=)([^=]*)", "\\2", format$filter)
+      # val <- gsub("([^=]*)([!=]=)([^=]*)", "\\3", format$filter)
+      # # filter_str <- paste0("data <- data[data$`", key, '`=="', val, '",]')
+      # filter_str <- paste0("data <- data[data$`", key, "`", cond, '"', val, '",]')
+
+      # filter_str <- "PrimaryValue == 1.00 | PrimaryValue == 1"
+      data <- data[with(data, eval(parse(text = format$filter))), ]
       # print(filter_str)
-      eval(parse(text = filter_str))
+      # eval(parse(text = filter_str))
     }
 
     # an format option to use the input filename as patientid

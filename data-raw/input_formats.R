@@ -63,7 +63,7 @@ input_formats <- rbind(
     datetime_header = "Create Time",
     datetime_format = "%m/%d/%Y, %I:%M:%S %p", # "m/d/yyyy, hh:mm:ss am",
     tz_colon_fix = FALSE,
-    filter = "Event Type==Pill was taken"
+    filter = "Event Type=='Pill was taken'"
   ),
   "mems" = data.frame(
     skip_header_lines = 1,
@@ -88,7 +88,7 @@ input_formats <- rbind(
     datetime_header = "Date",
     datetime_format = "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
-    filter = "IntakeStatusDisplayResource!=Missing day" # NA,
+    filter = "IntakeStatusDisplayResource!='Missing day'" # NA,
   ),
   "adheretech" = data.frame(
     skip_header_lines = 0,
@@ -101,7 +101,7 @@ input_formats <- rbind(
     datetime_header = "Time_Recorded_Patient_Timezone",
     datetime_format = "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
-    filter = "Status!=MISSED"
+    filter = "Status!='MISSED'"
   ),
   "adheretechxls" = data.frame(
     skip_header_lines = 0,
@@ -114,7 +114,7 @@ input_formats <- rbind(
     datetime_header = "Time_Recorded_Patient_Timezone",
     datetime_format = "%Y-%m-%d %H:%M:%S", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
-    filter = "Status!=MISSED"
+    filter = "Status!='MISSED'"
   ),
   "ecap_old" = data.frame(
     skip_header_lines = 0,
@@ -138,7 +138,7 @@ input_formats <- rbind(
     datetime_header = "DateStamp",
     datetime_format = "%m/%d/%Y %H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
-    filter = "EventType==Taken"
+    filter = "EventType=='Taken'"
   ),
   "patchcap" = data.frame(
     skip_header_lines = 0,
@@ -150,7 +150,7 @@ input_formats <- rbind(
     datetime_header = "Measurement Time",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
-    filter = "Primary Value==1"
+    filter = "`Primary Value`=='1' | `Primary Value`=='1.00'"
   )
 )
 
