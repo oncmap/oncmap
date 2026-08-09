@@ -46,12 +46,15 @@ A list containing variables:
 \itemize{
   \item \code{report} - Per period adherence statistic
   \item \code{adh} - Summary adherence statistic
+  \item \code{timestamps} - Raw input data
+  \item \code{patient_id} - Inferred Patient ID
 }
 }
 \description{
 Process input file and return adherence report
 }
 \examples{
-  input_file <- system.file('extdata', 'sample-data-ecap2.csv', package = 'oncmap')
-  report <- process_eamd("tests/testthat/ecap1.csv")
+input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
+report <- process_eamd(input_file)
+report$adh
 }

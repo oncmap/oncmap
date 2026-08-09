@@ -34,3 +34,11 @@ test_that("read_input still reports the underlying error for an unreadable file"
 test_that("read_input errors on a missing file rather than returning an empty result", {
   expect_error(read_input("no_such_file.csv"), "input file not found: no_such_file.csv")
 })
+
+test_that("the documented examples resolve their input files", {
+  for (f in c("sample-data-ecap1.csv", "sample-data-ecap2.csv")) {
+    input_file <- system.file("extdata", f, package = "oncmap")
+    expect_true(nzchar(input_file))
+    expect_false(is.null(read_input(input_file)$format))
+  }
+})
