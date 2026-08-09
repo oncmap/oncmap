@@ -30,7 +30,7 @@ A list of output variables
   \item \code{format_def} - Detected format definition
   \item \code{patient_id} - Extracted patient_id
   \item \code{device_id} - Extracted device_id
-  \item \code{data} - Extracted timestamps 
+  \item \code{data} - Extracted timestamps
   \item \code{log} - Log of the format detection
   \item \code{infile_data} - Raw input data
 }
@@ -39,6 +39,8 @@ A list of output variables
 Read input file
 }
 \examples{
-  input_file <- system.file('extdata', 'sample-data-ecap2.csv', package = 'oncmap')
-  input <- read_input("tests/testthat/ecap1.csv")
+input_file <- system.file("extdata", "sample-data-ecap1.csv", package = "oncmap")
+input <- read_input(input_file)
+input$format
+input$patient_id
 }

@@ -19,7 +19,8 @@
 #' }
 #' @examples
 #' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
-#' report <- process_eamd("tests/testthat/ecap1.csv")
+#' report <- process_eamd(input_file)
+#' report$adh
 #' @export
 process_eamd <- function(infile,
                          include_formats = NULL,

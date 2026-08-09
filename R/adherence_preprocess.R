@@ -147,9 +147,14 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
     # all_periods$nonmon remains all 0
   }
 
-  # last timestamp could be the (end_date + starttime) + 24 hours
+  # The monitored window is shifted by day_start_time: the first period starts at
+  # (start_date + starttime) and the last one ends 24 hours after (end_date + starttime).
+  # Both bounds must use the shifted times, otherwise actuations falling between
+  # midnight and starttime on the first day are neither excluded nor counted into
+  # any period -- they would silently vanish from the adherence denominator.
+  start_date_shifted <- patinfo$start_date + lubridate::seconds(day_start_sec)
   end_date_plus_day <- patinfo$end_date + lubridate::seconds(day_start_sec) + lubridate::days(1)
-  excluded <- if_else(`&`((excluded == 0), (timestamps < patinfo$start_date)), 2, excluded) # before start date
+  excluded <- if_else(`&`((excluded == 0), (timestamps < start_date_shifted)), 2, excluded) # before start date
   excluded <- if_else(`&`((excluded == 0), (timestamps >= end_date_plus_day)), 3, excluded) # after end date
   excluded <- if_else(`&`((excluded == 0), (sapply(timestamps, function(x) any(nonmonit_start <= x & x < nonmonit_end)))), 4, excluded)
 

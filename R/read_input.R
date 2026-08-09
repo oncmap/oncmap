@@ -15,8 +15,10 @@
 #'   \item \code{infile_data} - Raw input data
 #' }
 #' @examples
-#' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
-#' input <- read_input("tests/testthat/ecap1.csv")
+#' input_file <- system.file("extdata", "sample-data-ecap1.csv", package = "oncmap")
+#' input <- read_input(input_file)
+#' input$format
+#' input$patient_id
 #' @importFrom readr read_csv cols
 #' @importFrom readxl read_excel read_xlsx
 #' @importFrom tools file_ext file_path_sans_ext
@@ -24,6 +26,10 @@
 read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
                        formats_def = NULL,
                        infile_data_output = FALSE) {
+  # a missing file would otherwise fail every format in turn and return an
+  # all-NULL result, which reads as "no format matched" rather than "no file"
+  if (!file.exists(infile)) stop("input file not found: ", infile)
+
   # init logging
   log <- data.frame()
 
@@ -33,18 +39,23 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
   if (!is.null(formats_def)) {
     filtered_formats <- formats_def
   }
-  # exclude any formats specified in exclude_formats
+  # include only formats specified in include_formats (unless NULL)
   if (!is.null(include_formats)) {
     filtered_formats <- filtered_formats[rownames(filtered_formats) %in% include_formats, ]
   }
-  # include only formats specified in include_formats (unless NULL)
+  # exclude any formats specified in exclude_formats
   if (!is.null(exclude_formats)) {
     filtered_formats <- filtered_formats[!(rownames(filtered_formats) %in% exclude_formats), ]
   }
   # attempt to only match formats in filtered_formats
 
+  # nothing left to match against -- caller filtered out every format
+  if (is.null(filtered_formats) || nrow(filtered_formats) == 0) {
+    stop("no input formats to check -- include_formats/exclude_formats/formats_def left no formats")
+  }
+
   # iterate through enabled formats for file specified by infile parameter
-  for (i in 1:nrow(filtered_formats)) {
+  for (i in seq_len(nrow(filtered_formats))) {
     format <- filtered_formats[i, ]
     format_name <- rownames(format)
     infile_extension <- tolower(file_ext(infile))
@@ -74,14 +85,16 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       },
       error = function(x) {
         log <<- rbind(log, data.frame(format = format_name, message = x$message))
-        return(NA)
+        return(NULL)
       }
     )
 
     # if no data read in or error -- try next file format
 
-    # NA -- error in reading
-    if (length(infile_data) == 1 && is.na(infile_data)) {
+    # NULL -- error in reading. Use NULL rather than NA as the sentinel: a
+    # single-column table has length() 1 and an N-row is.na() matrix, which
+    # would make `length(x) == 1 && is.na(x)` error on a length > 1 condition.
+    if (is.null(infile_data)) {
       log <- rbind(log, data.frame(format = format_name, message = "No meaningful data"))
       next
     }
@@ -162,7 +175,16 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       # filter_str <- paste0("data <- data[data$`", key, "`", cond, '"', val, '",]')
 
       # filter_str <- "PrimaryValue == 1.00 | PrimaryValue == 1"
-      data <- data[with(data, eval(parse(text = format$filter))), ]
+      # a filter referring to a column this file does not have is a sign the
+      # format does not apply -- log and move on instead of aborting detection
+      data <- tryCatch(
+        data[with(data, eval(parse(text = format$filter))), ],
+        error = function(x) {
+          log <<- rbind(log, data.frame(format = format_name, message = paste("error applying filter:", x$message)))
+          return(NULL)
+        }
+      )
+      if (is.null(data)) next
       # print(filter_str)
       # eval(parse(text = filter_str))
     }
