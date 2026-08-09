@@ -94,10 +94,15 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
   )
 
   # adhweek” = (sum(“opens” over past 7 days)/sum(“doserx” over past 7 days))
+  # all_periods holds one row per period, not per day, so the rolling window has
+  # to span 7 * periods_per_day rows to cover 7 calendar days. Rows come from
+  # expand.grid(period, day), which varies period fastest -- i.e. chronological.
+  periods_per_day <- if (is(all_periods$period, "NULL")) 1 else max(all_periods$period)
+  adhweek_window <- 7 * periods_per_day
   # all_periods$adhweek <-
   adhweek <- all_periods %>%
-    mutate(adhweek_numerator = rollapply(opens, 7, sum, align = "right", fill = NA)) %>%
-    mutate(adhweek_denominator = rollapply(doserx, 7, sum, align = "right", fill = NA)) %>%
+    mutate(adhweek_numerator = rollapply(opens, adhweek_window, sum, align = "right", fill = NA)) %>%
+    mutate(adhweek_denominator = rollapply(doserx, adhweek_window, sum, align = "right", fill = NA)) %>%
     mutate(adhweek = round(100 * if_else(adhweek_denominator == 0, 0, adhweek_numerator / adhweek_denominator))) %>%
     mutate(adhweek = if_else(is.na(adhweek), "", as.character(adhweek))) %>%
     select(adhweek)
