@@ -1,6 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-data-raw
+^data-raw$
 ^LICENSE\.md$
 ^codecov\.yml$
 ^\.github$
+^build_pkg\.sh$
+^tests/testthat/_problems$

@@ -51,5 +51,26 @@ test_that("adherence_preprocess processing", {
   expect_error(adherence_preprocess(c(as.POSIXct("2023-01-01")), regimen = data.frame(1, 2, 3), patinfo = c(1, 2, 3)), "patinfo type error")
   expect_equal(run_test_adherence_preprocess(), list(63, 66, 66, 129))
   expect_equal(run_test_adherence_preprocess2(), list(63, 66, 66, 258))
-  expect_equal(run_test_adherence_preprocess3(), list(59, 66, 67, 258))
+  # day_start_time = "22:00": the actuation between midnight and 22:00 on the
+  # first monitored day is now excluded (code 2) rather than kept-but-uncounted,
+  # so retained actuations (66) match the actuations counted into periods (66)
+  expect_equal(run_test_adherence_preprocess3(), list(61, 66, 66, 258))
+})
+
+test_that("every retained actuation lands in exactly one period", {
+  input <- read_input("test_ecap2.xls")
+  for (day_start_time in c("00:00", "06:30", "22:00")) {
+    pre <- adherence_preprocess(
+      input$data$timestamp,
+      regimen = regimens[1, ],
+      patinfo = list(
+        day_start_time = day_start_time,
+        start_date = "2020-03-21", end_date = "2020-07-27"
+      )
+    )
+    expect_equal(
+      sum(pre$all_periods$opens), sum(pre$timestamps$excluded == 0),
+      info = paste("day_start_time =", day_start_time)
+    )
+  }
 })
