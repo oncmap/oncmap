@@ -85,3 +85,18 @@ test_that("dose grouping parameters are validated", {
   expect_error(adherence_preprocess(ts, grouping_regimen(dose_group_window = -1)), "at least 0")
   expect_error(adherence_preprocess(ts, grouping_regimen(dose_group_window = "x")), "number of seconds")
 })
+
+test_that("a format's min_wait overrides the regimen's", {
+  f <- test_path("test_findair.csv")
+  regimen <- grouping_regimen(periods_per_day = 2, min_wait = 600)
+  rep <- process_eamd(f, regimen = regimen, medication = "Advair")$input_report
+  # FindAir sets min_wait = 0: the 9:50 puff, 3 minutes after 9:47, is a dose of its own
+  expect_equal(rep$oncmap_used[1:4], rep(TRUE, 4))
+  expect_equal(rep$oncmap_dose[1:4], 1:4)
+
+  # a format without min_wait keeps the regimen's
+  formats <- input_formats["findair", ]
+  formats$min_wait <- NA
+  rep <- process_eamd(f, formats_def = formats, regimen = regimen, medication = "Advair")$input_report
+  expect_equal(rep$oncmap_reason[2], "within min_wait of the previous actuation")
+})

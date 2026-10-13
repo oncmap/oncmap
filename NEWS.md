@@ -1,5 +1,11 @@
 # oncmap (development version)
 
+## Format min_wait
+
+- `input_formats` gains `min_wait`: when set, it overrides the regimen's
+  `min_wait` in `process_eamd()`. FINDAIR sets it to 0 -- its puffs are
+  grouped into doses, so no wait applies between them.
+
 ## Dose grouping
 
 - Regimens gain `actuations_per_dose` (default 1) and `dose_group_window`

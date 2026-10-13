@@ -24,6 +24,8 @@ Formats that record the medication name declare it in `medication_header` (ECAP3
 
 Formats that mark manually entered actuations declare the column and its values in `manual_header` / `manual_values` (FINDAIR "manual" = 1). `process_eamd(include_manual = FALSE)` excludes them. `input_choices(read_input(file))` lists the medications and manual-entry flags present in a file.
 
+A format can set `min_wait` to override the regimen's minimum wait in `process_eamd()`. FINDAIR sets it to 0: its puffs are grouped into doses, so no wait applies between them.
+
 ## ECAP OLD
 * Device ID column "Package ID"
 * No defined headers

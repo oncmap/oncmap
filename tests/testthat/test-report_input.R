@@ -31,7 +31,9 @@ test_that("report_input labels every input row with whether and why it was used"
   # used rows are exactly the counted actuations
   expect_equal(sum(rep$oncmap_used), sum(r$all_periods$opens))
 
-  r <- process_eamd(f, regimen = transform(reg, min_wait = 600), medication = "Advair",
+  # FindAir overrides min_wait to 0 -- clear the override to test min_wait
+  r <- process_eamd(f, formats_def = transform(input_formats["findair", ], min_wait = NA),
+                    regimen = transform(reg, min_wait = 600), medication = "Advair",
                     patinfo = list(start_date = "2026-01-06", end_date = "2026-01-07"))
   expect_equal(r$input_report$oncmap_reason[6], "within min_wait of the previous actuation")
   # infile_data is used for the report but not returned unless asked for
