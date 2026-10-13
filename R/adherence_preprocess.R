@@ -3,19 +3,24 @@
 #' @param regimen Regimen - regimen definition
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
+#' @param manual Logical vector, parallel to \code{timestamps}, marking manually entered actuations (\code{NULL} if unknown)
+#' @param include_manual Count manual entries. When \code{FALSE} they are excluded (code 6) and ignored
+#'   entirely -- they neither trigger \code{min_wait} nor take part in burst detection
 #' @return A list of output variables
 #' \itemize{
 #'   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
 #'   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
 #'     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
-#'     4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}})
+#'     4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}}),
+#'     6 manual entry excluded
 #' }
 #' @importFrom readr read_csv cols
 #' @importFrom methods is
 #' @importFrom dplyr between if_else select mutate
 #' @import lubridate
 #' @export
-adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit = data.frame()) {
+adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit = data.frame(),
+                                 manual = NULL, include_manual = TRUE) {
   # Examples:
   #     timestamps <- input$data$timestamp
   #     regimen <- regimens[1,]
@@ -27,6 +32,9 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   # timestamps -- list of timestamps of openings
   if (!is(timestamps, "POSIXct")) stop("timestamps type error")
   if (length(timestamps) == 0) stop("empty timestamps list")
+  if (!is.null(manual) && (!is.logical(manual) || length(manual) != length(timestamps))) {
+    stop("manual must be a logical vector the same length as timestamps")
+  }
 
   debug_print("timestamps check \u2713")
 
@@ -87,6 +95,7 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
 
   debug_print("nonmonit check \u2713")
 
+  if (!is.null(manual)) manual <- manual[order(timestamps)]
   timestamps_ordered <- timestamps[order(timestamps)]
   ordering_changes <- any(!(timestamps == timestamps_ordered))
   timestamps <- timestamps_ordered
@@ -135,6 +144,12 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
 
   # PROCESS TIMESTAMPS FOR EXCLUSIONS
 
+  # 6. excluded manual entries are set aside before any other rule sees them;
+  # exclusions 1-5 are computed on the remaining actuations only
+  all_timestamps <- timestamps
+  considered <- if (is.null(manual) || include_manual) rep(TRUE, length(timestamps)) else !manual
+  timestamps <- timestamps[considered]
+
   # excluded <- rep(0, length(timestamps))
   # 1. remove the second if too close together
   # excluded <- if_else((timestamps - dplyr::lag(timestamps, default = as.POSIXct("1970-01-01"))) < (regimen$min_wait), 1, 0) # this '-' is using "auto" units -- we need "secs" explicitely
@@ -166,7 +181,7 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   end_date_plus_day <- patinfo$end_date + lubridate::seconds(day_start_sec) + lubridate::days(1)
   excluded <- if_else(`&`((excluded == 0), (timestamps < start_date_shifted)), 2, excluded) # before start date
   excluded <- if_else(`&`((excluded == 0), (timestamps >= end_date_plus_day)), 3, excluded) # after end date
-  excluded <- if_else(`&`((excluded == 0), (sapply(timestamps, function(x) any(nonmonit_start <= x & x < nonmonit_end)))), 4, excluded)
+  excluded <- if_else(`&`((excluded == 0), (vapply(timestamps, function(x) any(nonmonit_start <= x & x < nonmonit_end), logical(1)))), 4, excluded)
 
   debug_print(paste("patinfo$end_date", patinfo$end_date))
   debug_print(paste("end_date_plus_day", end_date_plus_day))
@@ -197,6 +212,13 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   }
 
   debug_print(paste0("timestamp exclude burst actuations over the prescribed doses per period -- number of exclusions: ", sum(excluded == 5)))
+
+  excluded_considered <- excluded
+  excluded <- rep(6, length(all_timestamps))
+  excluded[considered] <- excluded_considered
+  timestamps <- all_timestamps
+
+  debug_print(paste0("timestamp exclude manual entries -- number of exclusions: ", sum(excluded == 6)))
 
   # MERGE SPREADSHEET, TIMESTAMPS and EXCLUSIONS
 

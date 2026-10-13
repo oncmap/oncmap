@@ -46,6 +46,21 @@
   column in `data`. Rows whose timestamp cannot be parsed are now dropped
   rather than returned as `NA`, which made `adherence_preprocess()` fail.
 
+## Manual entries
+
+- Input formats declare `manual_header` and `manual_values`, the column and
+  values marking a manually entered actuation (`findair`: `manual` = `1`).
+  `read_input()` normalises it to a logical `manual` column in `data`.
+- `process_eamd(include_manual = FALSE)` excludes manual entries (new
+  `excluded` code 6, "manual entry excluded" in `input_report`). They are set
+  aside before the other rules, so they neither trigger `min_wait` nor take
+  part in burst detection. The default `TRUE` counts them, as before.
+  `adherence_preprocess()` takes the flag as `manual` / `include_manual`.
+- New `input_choices()` lists the medications and manual-entry flags present
+  in a `read_input()` result, so a UI can default to the single value when
+  there is only one. Format selection happens in `read_input()`; reading with
+  `medication` narrows the manual flags to that medication.
+
 ## Bug fixes
 
 - `report_adherence()` -- `adhweek` now covers 7 calendar days. The rolling

@@ -22,6 +22,8 @@ All timestamps are assumed in the patient's timezone and then internally encoded
 
 Formats that record the medication name declare it in `medication_header` (ECAP3 "Medications", ADHERETECH and CLEVERCAP "Medication", FINDAIR "drug"). Pass `medication` to `read_input()` or `process_eamd()` to process only those actuations; leave it `NULL` to process all of them. For formats without a medication column the filter is ignored with a warning.
 
+Formats that mark manually entered actuations declare the column and its values in `manual_header` / `manual_values` (FINDAIR "manual" = 1). `process_eamd(include_manual = FALSE)` excludes them. `input_choices(read_input(file))` lists the medications and manual-entry flags present in a file.
+
 ## ECAP OLD
 * Device ID column "Package ID"
 * No defined headers
@@ -97,4 +99,4 @@ Based on MEMS except:
 * Headers line "date,time,drug,planned,manual",
 * Date and time are in separate columns "date" and "time" -- joined before parsing
 * Datetime format "%m/%d/%y %I:%M %p", # "m/d/yy h:mm AM",
-* All rows are accepted, including manually logged doses ("manual" = 1)
+* Manually logged doses ("manual" = 1) are counted unless `include_manual = FALSE`

@@ -35,7 +35,8 @@ A list of output variables
   \item \code{format_def} - Detected format definition
   \item \code{patient_id} - Extracted patient_id
   \item \code{device_id} - Extracted device_id
-  \item \code{data} - Extracted timestamps; \code{input_row} is each actuation's row in \code{infile_data}
+  \item \code{data} - Extracted timestamps; \code{input_row} is each actuation's row in \code{infile_data},
+    \code{medication} and \code{manual} (logical) are present when the format records them
   \item \code{medications} - Medications present in the input (\code{NULL} if the format has no medication column)
   \item \code{medication} - Medication filter applied (\code{NULL} if none)
   \item \code{dropped} - Rows of \code{infile_data} not in \code{data} (\code{input_row}) and why (\code{reason})

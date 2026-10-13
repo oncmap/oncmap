@@ -8,7 +8,9 @@ adherence_preprocess(
   timestamps,
   regimen,
   patinfo = list(),
-  nonmonit = data.frame()
+  nonmonit = data.frame(),
+  manual = NULL,
+  include_manual = TRUE
 )
 }
 \arguments{
@@ -19,6 +21,11 @@ adherence_preprocess(
 \item{patinfo}{Patient info - patient specific information}
 
 \item{nonmonit}{Non-monitored date intervals}
+
+\item{manual}{Logical vector, parallel to \code{timestamps}, marking manually entered actuations (\code{NULL} if unknown)}
+
+\item{include_manual}{Count manual entries. When \code{FALSE} they are excluded (code 6) and ignored
+entirely -- they neither trigger \code{min_wait} nor take part in burst detection}
 }
 \value{
 A list of output variables
@@ -26,7 +33,8 @@ A list of output variables
   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
-    4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}})
+    4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}}),
+    6 manual entry excluded
 }
 }
 \description{

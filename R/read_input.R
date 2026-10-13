@@ -13,7 +13,8 @@
 #'   \item \code{format_def} - Detected format definition
 #'   \item \code{patient_id} - Extracted patient_id
 #'   \item \code{device_id} - Extracted device_id
-#'   \item \code{data} - Extracted timestamps; \code{input_row} is each actuation's row in \code{infile_data}
+#'   \item \code{data} - Extracted timestamps; \code{input_row} is each actuation's row in \code{infile_data},
+#'     \code{medication} and \code{manual} (logical) are present when the format records them
 #'   \item \code{medications} - Medications present in the input (\code{NULL} if the format has no medication column)
 #'   \item \code{medication} - Medication filter applied (\code{NULL} if none)
 #'   \item \code{dropped} - Rows of \code{infile_data} not in \code{data} (\code{input_row}) and why (\code{reason})
@@ -168,6 +169,12 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       next
     }
 
+    manual_header <- if ("manual_header" %in% names(format)) format$manual_header else NA
+    if (!is.na(manual_header) && !(manual_header %in% colnames(infile_data))) {
+      log <- rbind(log, data.frame(format = format_name, message = "header for manual not present"))
+      next
+    }
+
     data <- infile_data
     # remember each row's position in infile_data, so dropped rows can be reported
     data$oncmap_input_row <- seq_len(nrow(data))
@@ -253,6 +260,12 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     # extract timestamps (and the medication of each actuation, when known)
     data_medication <- if (!is.na(medication_header)) data[[medication_header]] else NULL
     data_input_row <- data$oncmap_input_row
+    # normalise to a logical flag so processing never sees the source column or its coding
+    data_manual <- NULL
+    if (!is.na(manual_header)) {
+      manual_values <- strsplit(as.character(format$manual_values), ",")[[1]]
+      data_manual <- !is.na(data[[manual_header]]) & as.character(data[[manual_header]]) %in% manual_values
+    }
     data <- data[, datetime_headers]
     if (length(datetime_headers) > 1) {
       # join split date/time columns with a space; a row missing any part is NA
@@ -263,6 +276,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     }
     colnames(data) <- "timestamp_infile"
     if (!is.null(data_medication)) data$medication <- data_medication
+    if (!is.null(data_manual)) data$manual <- data_manual
     data$input_row <- data_input_row
 
     # remove NAs from timestamps

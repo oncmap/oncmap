@@ -16,7 +16,8 @@ process_eamd(
   med = "",
   adhstart = NULL,
   adhend = NULL,
-  medication = NULL
+  medication = NULL,
+  include_manual = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ process_eamd(
 \item{adhend}{Report adherence end date}
 
 \item{medication}{Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications}
+
+\item{include_manual}{Count manually entered actuations (default \code{TRUE}). Has no effect for
+formats that do not mark manual entries}
 }
 \value{
 A list containing variables:

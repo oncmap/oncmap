@@ -8,6 +8,8 @@
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
 #' @param med Medication name used to label the report; defaults to \code{medication} when that is given
+#' @param include_manual Count manually entered actuations (default \code{TRUE}). Has no effect for
+#'   formats that do not mark manual entries
 #' @param medication Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications
 #' @param adhstart Report adherence start date
 #' @param adhend Report adherence end date
@@ -35,7 +37,8 @@ process_eamd <- function(infile,
                          med = "",
                          adhstart = NULL,
                          adhend = NULL,
-                         medication = NULL) {
+                         medication = NULL,
+                         include_manual = TRUE) {
   # infile_data is always read -- input_report needs it
   data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output = TRUE,
                      medication = medication)
@@ -46,7 +49,8 @@ process_eamd <- function(infile,
   if (is.null(regimen)) regimen <- regimens[1, ]
   if (med == "" && !is.null(medication)) med <- paste(medication, collapse = ", ")
   if (is.null(patinfo)) patinfo <- list(day_start_time = "00:00")
-  pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit)
+  pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit,
+                              manual = data$data[["manual"]], include_manual = include_manual)
   report_output <- report_adherence(pre$all_periods, pre$timestamps, med, patinfo = patinfo, adhstart = adhstart, adhend = adhend)
   report_output$all_periods <- pre$all_periods
   report_output$timestamps <- pre$timestamps

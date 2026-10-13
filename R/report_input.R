@@ -40,7 +40,8 @@ report_input <- function(input, timestamps) {
     "2" = "before monitoring start",
     "3" = "after monitoring end",
     "4" = "non-monitored interval",
-    "5" = "burst over prescribed doses per period"
+    "5" = "burst over prescribed doses per period",
+    "6" = "manual entry excluded"
   )
   excl <- excluded != 0
   reason[rows[excl]] <- exclusion_reasons[as.character(excluded[excl])]
