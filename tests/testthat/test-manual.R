@@ -25,9 +25,9 @@ test_that("read_input normalises the manual column to a logical flag", {
 test_that("process_eamd counts manual entries unless include_manual = FALSE", {
   f <- manual_file()
   with_manual <- process_eamd(f, regimen = burst3)
-  # 3 in a minute on day 1 is a burst, capped at 2
-  expect_equal(with_manual$all_periods$opens, c(2, 1, 1))
-  expect_equal(with_manual$input_report$oncmap_reason[3], "burst over prescribed doses per period")
+  # 3 in a minute on day 1 is a burst, removed
+  expect_equal(with_manual$all_periods$opens, c(0, 1, 1))
+  expect_equal(with_manual$input_report$oncmap_reason[1:3], rep("part of an actuation burst", 3))
 
   without <- process_eamd(f, regimen = burst3, include_manual = FALSE)
   # the manual entry is set aside first, so day 1 is no longer a burst

@@ -14,7 +14,7 @@
 #'     \code{actuationsrx} the prescribed actuations
 #'   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
 #'     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
-#'     4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}}),
+#'     4 non-monitored interval, 5 part of an actuation burst (see \code{\link{regimens}}),
 #'     6 manual entry excluded; and \code{dose}, the dose each counted actuation belongs to (see
 #'     \code{dose_group_window} in \code{\link{regimens}})
 #' }
@@ -204,7 +204,7 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
 
   debug_print(paste0("timestamp exclude openings before, after monitored interval(between ", patinfo$start_date, " and ", patinfo$end_date, ") and within non-monitored intervals -- number of exclusions: ", sum(excluded == 2), ",", sum(excluded == 3), ",", sum(excluded == 4)))
 
-  # 5. cap bursts at the prescribed doses per period
+  # 5. remove bursts -- every actuation in a burst is excluded
   # detection uses all actuations, so it does not depend on min_wait exclusions
   in_burst <- rep(FALSE, length(timestamps))
   t_secs <- as.numeric(timestamps)
@@ -215,20 +215,9 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
       in_burst[i:window_last[i]] <- TRUE
     }
   }
-  if (any(in_burst)) {
-    # periods are contiguous, so every counted actuation falls in one of them
-    period_idx <- findInterval(t_secs, as.numeric(all_periods$start))
-    for (p in unique(period_idx[excluded == 0 & in_burst])) {
-      counted <- which(excluded == 0 & period_idx == p)
-      # the cap is the prescribed actuations for the period
-      excess <- length(counted) - all_periods$doserx[p] * actuations_per_dose
-      if (excess <= 0) next
-      burst_counted <- counted[in_burst[counted]]
-      excluded[utils::tail(burst_counted, min(excess, length(burst_counted)))] <- 5
-    }
-  }
+  excluded[excluded == 0 & in_burst] <- 5
 
-  debug_print(paste0("timestamp exclude burst actuations over the prescribed doses per period -- number of exclusions: ", sum(excluded == 5)))
+  debug_print(paste0("timestamp exclude actuations in bursts -- number of exclusions: ", sum(excluded == 5)))
 
   # 7. group counted actuations into doses: an actuation within dose_group_window
   # seconds of the previous one joins its dose. Without grouping every actuation

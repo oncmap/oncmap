@@ -36,7 +36,7 @@ A list of output variables
     \code{actuationsrx} the prescribed actuations
   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
-    4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}}),
+    4 non-monitored interval, 5 part of an actuation burst (see \code{\link{regimens}}),
     6 manual entry excluded; and \code{dose}, the dose each counted actuation belongs to (see
     \code{dose_group_window} in \code{\link{regimens}})
 }

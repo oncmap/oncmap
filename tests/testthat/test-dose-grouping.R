@@ -50,10 +50,11 @@ test_that("with grouping min_wait applies between doses", {
   expect_equal(pre$all_periods$opens, 2)
 })
 
-test_that("burst capping caps at the prescribed actuations", {
-  ts <- at(1, c("09:00:00", "09:00:10", "09:00:20", "09:00:30"))
+test_that("bursts are removed before grouping", {
+  ts <- at(1, c("09:00:00", "09:00:10", "09:00:20", "09:00:30", "09:10:00", "09:10:30"))
   pre <- adherence_preprocess(ts, grouping_regimen(burst_actuations = "3", burst_window = "60"))
-  expect_equal(pre$timestamps$excluded, c(0, 0, 5, 5))
+  expect_equal(pre$timestamps$excluded, c(5, 5, 5, 5, 0, 0))
+  expect_equal(pre$timestamps$dose, c(NA, NA, NA, NA, 1, 1))
   expect_equal(pre$all_periods$fulldoses, 1)
 })
 

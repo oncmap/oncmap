@@ -26,15 +26,12 @@ regimens
 Defines built-in regimen definitions.
 }
 \details{
-Burst capping: an actuation belongs to a burst when any rolling window of
+Burst removal: an actuation belongs to a burst when any rolling window of
 \code{burst_window[i]} seconds holds at least \code{burst_actuations[i]}
-actuations, for any rule \code{i}. In a dosing period containing a burst,
-the latest burst actuations are excluded (\code{excluded = 5}) until the
-period counts no more than \code{doses_per_period}. For example
+actuations, for any rule \code{i}. Every actuation in a burst is removed
+from processing (\code{excluded = 5}). For example
 \code{burst_actuations = "8,3"}, \code{burst_window = "120,60"} flags 8 or
-more actuations within 2 minutes, or 3 or more within 1 minute. With
-\code{actuations_per_dose} above 1 the cap is the prescribed actuations,
-\code{doses_per_period * actuations_per_dose}.
+more actuations within 2 minutes, or 3 or more within 1 minute.
 
 Dose grouping: with \code{dose_group_window} set, counted actuations chain
 into one dose while each is at most \code{dose_group_window} seconds after
@@ -45,6 +42,6 @@ has \code{doses_per_period} doses each of at least \code{actuations_per_dose}
 actuations, and \code{perdoses} counts actuations capped per dose at
 \code{actuations_per_dose} against the prescribed actuations. \code{min_wait}
 then applies between doses -- from the end of one to the start of the next --
-instead of between actuations. Burst capping runs before grouping.
+instead of between actuations. Bursts are removed before grouping.
 }
 \keyword{datasets}

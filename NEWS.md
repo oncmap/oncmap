@@ -17,6 +17,13 @@
   counted actuation belongs to (`dose`, `oncmap_dose`).
 - The defaults leave results unchanged: every actuation is a dose of one.
 
+## Burst removal (behaviour change)
+
+- Every actuation in a burst is now removed from processing (`excluded`
+  code 5, "part of an actuation burst" in `input_report`). 0.1.9 instead
+  capped a period containing a burst at the prescribed doses, keeping its
+  earliest burst actuations. Bursts are removed before dose grouping.
+
 # oncmap 0.1.9
 
 ## New input formats
