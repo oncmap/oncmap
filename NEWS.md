@@ -23,6 +23,17 @@
   and a per-actuation `medication` column in `data`.
 - `process_eamd()` labels the report with `medication` when `med` is not set.
 
+## Burst capping
+
+- Regimens gain `burst_actuations` and `burst_window` (seconds), comma
+  separated pairs of rules. An actuation is part of a burst when any rolling
+  window of `burst_window` seconds holds at least `burst_actuations`
+  actuations. In a dosing period containing a burst, burst actuations beyond
+  `doses_per_period` are excluded with the new `excluded` code 5, capping the
+  period at the prescribed dose. `NA` (the default, and all built-in regimens)
+  disables it. E.g. `"8,3"` / `"120,60"`: 8 or more within 2 minutes, or 3 or
+  more within 1 minute.
+
 ## Bug fixes
 
 - `report_adherence()` -- `adhweek` now covers 7 calendar days. The rolling

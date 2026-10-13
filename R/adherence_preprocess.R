@@ -6,6 +6,9 @@
 #' @return A list of output variables
 #' \itemize{
 #'   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
+#'   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
+#'     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
+#'     4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}})
 #' }
 #' @importFrom readr read_csv cols
 #' @importFrom methods is
@@ -35,6 +38,13 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   if (is(regimen$min_wait, "NULL")) regimen$min_wait <- 600 # seconds
   if (is(regimen$weekdays, "NULL")) regimen$weekdays <- "all"
   if (tolower(regimen$weekdays) == "all") regimen$weekdays <- "0,1,2,3,4,5,6"
+  if (is(regimen$burst_actuations, "NULL")) regimen$burst_actuations <- NA
+  if (is(regimen$burst_window, "NULL")) regimen$burst_window <- NA
+  burst_actuations <- if (is.na(regimen$burst_actuations)) numeric(0) else suppressWarnings(as.numeric(strsplit(as.character(regimen$burst_actuations), ",")[[1]]))
+  burst_window <- if (is.na(regimen$burst_window)) numeric(0) else suppressWarnings(as.numeric(strsplit(as.character(regimen$burst_window), ",")[[1]]))
+  if (length(burst_actuations) != length(burst_window) || anyNA(burst_actuations) || anyNA(burst_window)) {
+    stop("regimen burst_actuations and burst_window must be comma separated numbers of equal length")
+  }
 
   # TODO: validate weekdays is a string with list of comma separated numbers 0..6
 
@@ -162,6 +172,31 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   debug_print(paste("end_date_plus_day", end_date_plus_day))
 
   debug_print(paste0("timestamp exclude openings before, after monitored interval(between ", patinfo$start_date, " and ", patinfo$end_date, ") and within non-monitored intervals -- number of exclusions: ", sum(excluded == 2), ",", sum(excluded == 3), ",", sum(excluded == 4)))
+
+  # 5. cap bursts at the prescribed doses per period
+  # detection uses all actuations, so it does not depend on min_wait exclusions
+  in_burst <- rep(FALSE, length(timestamps))
+  t_secs <- as.numeric(timestamps)
+  for (r in seq_along(burst_actuations)) {
+    # index of the last actuation in [t_i, t_i + window)
+    window_last <- findInterval(t_secs + burst_window[r], t_secs, left.open = TRUE)
+    for (i in which(window_last - seq_along(t_secs) + 1 >= burst_actuations[r])) {
+      in_burst[i:window_last[i]] <- TRUE
+    }
+  }
+  if (any(in_burst)) {
+    # periods are contiguous, so every counted actuation falls in one of them
+    period_idx <- findInterval(t_secs, as.numeric(all_periods$start))
+    for (p in unique(period_idx[excluded == 0 & in_burst])) {
+      counted <- which(excluded == 0 & period_idx == p)
+      excess <- length(counted) - all_periods$doserx[p]
+      if (excess <= 0) next
+      burst_counted <- counted[in_burst[counted]]
+      excluded[utils::tail(burst_counted, min(excess, length(burst_counted)))] <- 5
+    }
+  }
+
+  debug_print(paste0("timestamp exclude burst actuations over the prescribed doses per period -- number of exclusions: ", sum(excluded == 5)))
 
   # MERGE SPREADSHEET, TIMESTAMPS and EXCLUSIONS
 

@@ -24,6 +24,9 @@ adherence_preprocess(
 A list of output variables
 \itemize{
   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
+  \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
+    1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
+    4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}})
 }
 }
 \description{
