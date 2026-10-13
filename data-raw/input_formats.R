@@ -12,6 +12,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Dose Timestamp",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ", # %z -- no timezone
     tz_colon_fix = TRUE,
@@ -28,6 +29,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Dose Timestamp",
     datetime_format = "%Y-%b-%dT%H:%M:%S", # "YYYY-MMM-DDTHH:MM:SS-TZ", # %z -- no timezone
     tz_colon_fix = TRUE,
@@ -43,6 +45,7 @@ input_formats <- rbind(
     medication_header = "Medications",
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Dose Timestamp",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ", # %z -- no timezone
     tz_colon_fix = TRUE,
@@ -58,6 +61,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Dose Timestamp",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "2020-03-17T16:10:33-04:00",  # %z -- no timezone
     tz_colon_fix = TRUE,
@@ -75,6 +79,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Create Time",
     datetime_format = "%m/%d/%Y, %I:%M:%S %p", # "m/d/yyyy, hh:mm:ss am",
     tz_colon_fix = FALSE,
@@ -91,6 +96,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Date",
     datetime_format = "%m/%d/%Y %I:%M:%S %p", # "m/d/yyyy hh:mm:ss am",
     tz_colon_fix = FALSE,
@@ -106,6 +112,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Date",
     datetime_format = "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
@@ -122,6 +129,7 @@ input_formats <- rbind(
     medication_header = "Medication",
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Time_Recorded_Patient_Timezone",
     datetime_format = "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
@@ -138,6 +146,7 @@ input_formats <- rbind(
     medication_header = "Medication",
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Time_Recorded_Patient_Timezone",
     datetime_format = "%Y-%m-%d %H:%M:%S", # "m/d/yyyy hh:mm",
     tz_colon_fix = FALSE,
@@ -153,6 +162,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Dose Timestamp",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
@@ -168,6 +178,7 @@ input_formats <- rbind(
     medication_header = "Medication",
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "DateStamp",
     datetime_format = "%m/%d/%Y %H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
@@ -183,6 +194,7 @@ input_formats <- rbind(
     medication_header = NA,
     manual_header = NA,
     manual_values = NA,
+    min_wait = NA,
     datetime_header = "Measurement Time",
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
@@ -198,6 +210,7 @@ input_formats <- rbind(
     medication_header = "drug",
     manual_header = "manual",
     manual_values = "1", # manual = 1 marks a manually logged dose
+    min_wait = 0, # puffs are grouped into doses; no wait between them
     datetime_header = "date,time", # date and time are in separate columns
     datetime_format = "%m/%d/%y %I:%M %p", # "m/d/yy h:mm AM",
     tz_colon_fix = FALSE,

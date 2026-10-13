@@ -31,7 +31,8 @@ process_eamd(
 
 \item{infile_data_output}{Include infile data frame in the result}
 
-\item{regimen}{Regimen - regimen definition}
+\item{regimen}{Regimen - regimen definition. A non-\code{NA} \code{min_wait} in the detected
+format (see \code{\link{input_formats}}) overrides the regimen's \code{min_wait}}
 
 \item{patinfo}{Patient info - patient specific information}
 

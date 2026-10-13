@@ -4,7 +4,8 @@
 #' @param exclude_formats Which formats to exclude from checking
 #' @param formats_def New formats definition
 #' @param infile_data_output Include infile data frame in the result
-#' @param regimen Regimen - regimen definition
+#' @param regimen Regimen - regimen definition. A non-\code{NA} \code{min_wait} in the detected
+#'   format (see \code{\link{input_formats}}) overrides the regimen's \code{min_wait}
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
 #' @param med Medication name used to label the report; defaults to \code{medication} when that is given
@@ -47,6 +48,9 @@ process_eamd <- function(infile,
     return(data)
   }
   if (is.null(regimen)) regimen <- regimens[1, ]
+  # a format's min_wait (e.g. 0 for inhalers whose puffs are grouped) overrides the regimen's
+  format_min_wait <- data$format_def[["min_wait"]]
+  if (length(format_min_wait) == 1 && !is.na(format_min_wait)) regimen$min_wait <- as.numeric(format_min_wait)
   if (med == "" && !is.null(medication)) med <- paste(medication, collapse = ", ")
   if (is.null(patinfo)) patinfo <- list(day_start_time = "00:00")
   pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit,

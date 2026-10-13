@@ -11,6 +11,7 @@
 #'   \item{\code{medication_header}}{character Medication column in the input data (NA if the format has none)}
 #'   \item{\code{manual_header}}{character Column marking manually entered actuations (NA if the format has none)}
 #'   \item{\code{manual_values}}{character Comma separated \code{manual_header} values that mark a manual entry}
+#'   \item{\code{min_wait}}{integer Minimum wait (in seconds) that overrides the regimen's \code{min_wait} in \code{process_eamd} (NA keeps the regimen's)}
 #'   \item{\code{datetime_header}}{character Actuation Date/Time column in the input data; a comma separated list of columns (e.g. \code{"date,time"}) is joined with a space before parsing}
 #'   \item{\code{datetime_format}}{character Actuation Date/Time format}
 #'   \item{\code{filter}}{character Inclusion/Exclusion filter to apply on the input data}

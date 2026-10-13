@@ -44,8 +44,11 @@ test_that("excluded manual entries do not trigger min_wait", {
     "1/6/26,9:00 AM,Advair,11:05 AM,1",
     "1/6/26,9:05 AM,Advair,11:05 AM,0"
   ), f)
-  expect_equal(process_eamd(f, regimen = reg)$input_report$oncmap_reason[2], "within min_wait of the previous actuation")
-  expect_equal(process_eamd(f, regimen = reg, include_manual = FALSE)$all_periods$opens, 1)
+  # FindAir overrides min_wait to 0 -- clear the override to test min_wait
+  formats <- transform(input_formats["findair", ], min_wait = NA)
+  expect_equal(process_eamd(f, formats_def = formats, regimen = reg)$input_report$oncmap_reason[2],
+               "within min_wait of the previous actuation")
+  expect_equal(process_eamd(f, formats_def = formats, regimen = reg, include_manual = FALSE)$all_periods$opens, 1)
 })
 
 test_that("excluding manual entries works when every entry is manual", {
