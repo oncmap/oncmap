@@ -89,3 +89,10 @@ Based on MEMS except:
 * Datetime column "Time_Recorded_Patient_Timezone",
 * Datetime format "%m/%d/%Y %H:%M", # "m/d/yyyy hh:mm",
 * Accept lines where "Status!=MISSED",
+
+## FINDAIR
+* No patient ID or device ID columns
+* Headers line "date,time,drug,planned,manual",
+* Date and time are in separate columns "date" and "time" -- joined before parsing
+* Datetime format "%m/%d/%y %I:%M %p", # "m/d/yy h:mm AM",
+* All rows are accepted, including manually logged doses ("manual" = 1)

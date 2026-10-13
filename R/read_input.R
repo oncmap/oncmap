@@ -134,7 +134,9 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     }
 
     # datetime is expected in format$datetime_header -- validates both format and data
-    if (!(format$datetime_header %in% colnames(infile_data))) {
+    # (a comma separated list when date and time are in separate columns)
+    datetime_headers <- strsplit(format$datetime_header, ",")[[1]]
+    if (!all(datetime_headers %in% colnames(infile_data))) {
       # datetime header not present
       log <- rbind(log, data.frame(format = format_name, message = "datetime header not present"))
       next
@@ -229,7 +231,14 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     }
 
     # extract timestamps
-    data <- data[, format$datetime_header]
+    data <- data[, datetime_headers]
+    if (length(datetime_headers) > 1) {
+      # join split date/time columns with a space; a row missing any part is NA
+      joined <- do.call(paste, unname(as.list(data)))
+      joined[rowSums(is.na(data)) > 0] <- NA
+      data <- data[, 1]
+      data[[1]] <- joined
+    }
     colnames(data) <- "timestamp_infile"
 
     # remove NAs from timestamps

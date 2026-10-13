@@ -8,7 +8,7 @@
 #'   \item{\code{deviceid_header}}{character Device ID column in the input data}
 #'   \item{\code{headers}}{character Comma separated list of expected column headers}
 #'   \item{\code{patientid_header}}{character Patient ID column in the input data}
-#'   \item{\code{datetime_header}}{character Actuation Date/Time column in the input data}
+#'   \item{\code{datetime_header}}{character Actuation Date/Time column in the input data; a comma separated list of columns (e.g. \code{"date,time"}) is joined with a space before parsing}
 #'   \item{\code{datetime_format}}{character Actuation Date/Time format}
 #'   \item{\code{filter}}{character Inclusion/Exclusion filter to apply on the input data}
 #'   \item{\code{tz_colon_fix}}{logical Fix for when TZ contains with ':'}
