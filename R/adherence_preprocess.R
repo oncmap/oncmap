@@ -8,11 +8,15 @@
 #'   entirely -- they neither trigger \code{min_wait} nor take part in burst detection
 #' @return A list of output variables
 #' \itemize{
-#'   \item \code{all_periods} - Processed timestamps into periods applying input parameters.
+#'   \item \code{all_periods} - Processed timestamps into periods applying input parameters: \code{opens}
+#'     counts doses, \code{fulldoses} doses of at least \code{actuations_per_dose} actuations,
+#'     \code{actuations} counted actuations capped per dose at \code{actuations_per_dose}, and
+#'     \code{actuationsrx} the prescribed actuations
 #'   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
 #'     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
-#'     4 non-monitored interval, 5 burst over the prescribed doses per period (see \code{\link{regimens}}),
-#'     6 manual entry excluded
+#'     4 non-monitored interval, 5 part of an actuation burst (see \code{\link{regimens}}),
+#'     6 manual entry excluded; and \code{dose}, the dose each counted actuation belongs to (see
+#'     \code{dose_group_window} in \code{\link{regimens}})
 #' }
 #' @importFrom readr read_csv cols
 #' @importFrom methods is
@@ -48,6 +52,15 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   if (tolower(regimen$weekdays) == "all") regimen$weekdays <- "0,1,2,3,4,5,6"
   if (is(regimen$burst_actuations, "NULL")) regimen$burst_actuations <- NA
   if (is(regimen$burst_window, "NULL")) regimen$burst_window <- NA
+  if (is(regimen$actuations_per_dose, "NULL") || is.na(regimen$actuations_per_dose)) regimen$actuations_per_dose <- 1
+  if (is(regimen$dose_group_window, "NULL")) regimen$dose_group_window <- NA
+  actuations_per_dose <- suppressWarnings(as.numeric(regimen$actuations_per_dose))
+  dose_group_window <- suppressWarnings(as.numeric(regimen$dose_group_window))
+  if (is.na(actuations_per_dose) || actuations_per_dose < 1) stop("regimen actuations_per_dose must be a number of at least 1")
+  if (!is.na(regimen$dose_group_window) && (is.na(dose_group_window) || dose_group_window < 0)) {
+    stop("regimen dose_group_window must be NA or a number of seconds of at least 0")
+  }
+  grouping <- !is.na(dose_group_window)
   burst_actuations <- if (is.na(regimen$burst_actuations)) numeric(0) else suppressWarnings(as.numeric(strsplit(as.character(regimen$burst_actuations), ",")[[1]]))
   burst_window <- if (is.na(regimen$burst_window)) numeric(0) else suppressWarnings(as.numeric(strsplit(as.character(regimen$burst_window), ",")[[1]]))
   if (length(burst_actuations) != length(burst_window) || anyNA(burst_actuations) || anyNA(burst_window)) {
@@ -153,7 +166,10 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   # excluded <- rep(0, length(timestamps))
   # 1. remove the second if too close together
   # excluded <- if_else((timestamps - dplyr::lag(timestamps, default = as.POSIXct("1970-01-01"))) < (regimen$min_wait), 1, 0) # this '-' is using "auto" units -- we need "secs" explicitely
+  # with dose grouping min_wait applies between doses instead (below) -- per
+  # actuation it would exclude every actuation after the first of a dose
   excluded <- if_else(difftime(timestamps, dplyr::lag(timestamps, default = as.POSIXct("1970-01-01", tz = "UTC")), units = "secs") < (regimen$min_wait), 1, 0)
+  if (grouping) excluded <- rep(0, length(timestamps))
 
   debug_print(paste0("timestamp exclude openings too close to the previous ones (within ", regimen$min_wait, " seconds) -- number of exclusions: ", sum(excluded == 1)))
 
@@ -188,7 +204,7 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
 
   debug_print(paste0("timestamp exclude openings before, after monitored interval(between ", patinfo$start_date, " and ", patinfo$end_date, ") and within non-monitored intervals -- number of exclusions: ", sum(excluded == 2), ",", sum(excluded == 3), ",", sum(excluded == 4)))
 
-  # 5. cap bursts at the prescribed doses per period
+  # 5. remove bursts -- every actuation in a burst is excluded
   # detection uses all actuations, so it does not depend on min_wait exclusions
   in_burst <- rep(FALSE, length(timestamps))
   t_secs <- as.numeric(timestamps)
@@ -199,32 +215,64 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
       in_burst[i:window_last[i]] <- TRUE
     }
   }
-  if (any(in_burst)) {
-    # periods are contiguous, so every counted actuation falls in one of them
-    period_idx <- findInterval(t_secs, as.numeric(all_periods$start))
-    for (p in unique(period_idx[excluded == 0 & in_burst])) {
-      counted <- which(excluded == 0 & period_idx == p)
-      excess <- length(counted) - all_periods$doserx[p]
-      if (excess <= 0) next
-      burst_counted <- counted[in_burst[counted]]
-      excluded[utils::tail(burst_counted, min(excess, length(burst_counted)))] <- 5
+  excluded[excluded == 0 & in_burst] <- 5
+
+  debug_print(paste0("timestamp exclude actuations in bursts -- number of exclusions: ", sum(excluded == 5)))
+
+  # 7. group counted actuations into doses: an actuation within dose_group_window
+  # seconds of the previous one joins its dose. Without grouping every actuation
+  # is a dose of its own.
+  dose <- rep(NA_integer_, length(timestamps))
+  counted <- which(excluded == 0)
+  if (length(counted) > 0) {
+    if (grouping) {
+      dose[counted] <- cumsum(c(TRUE, diff(t_secs[counted]) > dose_group_window))
+      # min_wait between doses: a dose starting within min_wait of the end of the
+      # previous dose is excluded whole
+      dose_start <- vapply(split(t_secs[counted], dose[counted]), min, numeric(1))
+      dose_end <- vapply(split(t_secs[counted], dose[counted]), max, numeric(1))
+      too_close <- which(c(FALSE, dose_start[-1] - dose_end[-length(dose_end)] < regimen$min_wait))
+      excluded[counted[dose[counted] %in% too_close]] <- 1
+      dose[excluded != 0] <- NA
+      dose <- match(dose, unique(dose[!is.na(dose)])) # renumber 1..n
+    } else {
+      dose[counted] <- seq_along(counted)
     }
   }
 
-  debug_print(paste0("timestamp exclude burst actuations over the prescribed doses per period -- number of exclusions: ", sum(excluded == 5)))
+  debug_print(paste0("timestamp group into doses -- number of doses: ", max(c(0, dose), na.rm = TRUE)))
 
   excluded_considered <- excluded
   excluded <- rep(6, length(all_timestamps))
   excluded[considered] <- excluded_considered
+  dose_considered <- dose
+  dose <- rep(NA_integer_, length(all_timestamps))
+  dose[considered] <- dose_considered
   timestamps <- all_timestamps
 
   debug_print(paste0("timestamp exclude manual entries -- number of exclusions: ", sum(excluded == 6)))
 
   # MERGE SPREADSHEET, TIMESTAMPS and EXCLUSIONS
 
-  # number of actual openings
-  select_timestamps <- if_else(excluded == 0, timestamps, as.POSIXct("1970-01-01", tz = "UTC"))
-  all_periods$opens <- apply(all_periods, 1, function(x) sum(between(select_timestamps, as.POSIXct(x["start"], tz = "UTC"), as.POSIXct(x["end"], tz = "UTC"))))
+  # a dose counts in the period its first actuation falls in
+  n_periods <- nrow(all_periods)
+  doses <- data.frame(start = numeric(0), size = numeric(0))
+  if (any(!is.na(dose))) {
+    doses <- data.frame(
+      start = vapply(split(as.numeric(timestamps[!is.na(dose)]), dose[!is.na(dose)]), min, numeric(1)),
+      size = as.numeric(table(dose[!is.na(dose)]))
+    )
+  }
+  dose_period <- findInterval(doses$start, as.numeric(all_periods$start))
+  in_period <- dose_period > 0 & doses$start <= as.numeric(all_periods$end)[pmax(dose_period, 1)]
+  dose_period <- dose_period[in_period]
+  doses <- doses[in_period, ]
 
-  return(list(all_periods = all_periods, timestamps = data.frame(timestamps = timestamps, excluded = excluded)))
+  # number of actual openings -- doses, each of one or more actuations
+  all_periods$opens <- tabulate(dose_period, n_periods)
+  all_periods$fulldoses <- tabulate(dose_period[doses$size >= actuations_per_dose], n_periods)
+  all_periods$actuations <- vapply(seq_len(n_periods), function(p) sum(pmin(doses$size[dose_period == p], actuations_per_dose)), numeric(1))
+  all_periods$actuationsrx <- all_periods$doserx * actuations_per_dose
+
+  return(list(all_periods = all_periods, timestamps = data.frame(timestamps = timestamps, excluded = excluded, dose = dose)))
 }

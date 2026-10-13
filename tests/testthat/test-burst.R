@@ -8,23 +8,23 @@ burst_regimen <- function(actuations = "8,3", window = "120,60") {
 
 at <- function(day, secs) as.POSIXct(paste0("2026-01-0", day, " 10:00:00"), tz = "UTC") + secs
 
-test_that("burst capping excludes burst actuations over the prescribed doses", {
+test_that("every actuation in a burst is removed", {
   ts <- c(
     at(1, c(0, 30)), # 2 in a minute -- not a burst
-    at(2, c(0, 20, 40)), # 3 in a minute -- burst, capped at 2
+    at(2, c(0, 20, 40)), # 3 in a minute -- burst, all removed
     at(3, c(0, 61, 122)), # 3 over 2 minutes -- not a burst, overuse kept
     at(4, c(-7200, 0, 10, 20)) # earlier dose plus a burst -- only burst actuations go
   )
   pre <- adherence_preprocess(ts, burst_regimen())
-  expect_equal(pre$all_periods$opens, c(2, 2, 3, 2))
-  expect_equal(pre$timestamps$excluded, c(0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5, 5))
+  expect_equal(pre$all_periods$opens, c(2, 0, 3, 1))
+  expect_equal(pre$timestamps$excluded, c(0, 0, 5, 5, 5, 0, 0, 0, 0, 5, 5, 5))
 })
 
 test_that("burst window rule counts actuations within the window", {
   reg <- burst_regimen("8", "120")
   pre <- adherence_preprocess(at(1, seq(0, by = 15, length.out = 8)), reg)
-  expect_equal(pre$all_periods$opens, 2)
-  expect_equal(sum(pre$timestamps$excluded == 5), 6)
+  expect_equal(pre$all_periods$opens, 0)
+  expect_equal(sum(pre$timestamps$excluded == 5), 8)
 
   # 7 within 2 minutes is under the threshold
   pre <- adherence_preprocess(at(1, seq(0, by = 15, length.out = 7)), reg)

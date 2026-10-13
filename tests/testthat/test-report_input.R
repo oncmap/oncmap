@@ -8,7 +8,7 @@ test_that("report_input labels every input row with whether and why it was used"
     "1/6/26,99:00 XM,Advair,11:05 AM,0", # unparseable
     "1/6/26,9:00 AM,Advair,11:05 AM,0", # used
     "1/6/26,9:05 AM,Advair,11:05 AM,0", # within min_wait
-    "1/7/26,9:00 AM,Advair,11:05 AM,0", # burst: first two used, third capped
+    "1/7/26,9:00 AM,Advair,11:05 AM,0", # burst: all three removed
     "1/7/26,9:00 AM,Advair,11:05 AM,0",
     "1/7/26,9:00 AM,Advair,11:05 AM,0"
   ), f)
@@ -23,7 +23,7 @@ test_that("report_input labels every input row with whether and why it was used"
   expect_equal(rep$drug, c("Advair", "Advair HFA", rep("Advair", 7)))
   expect_equal(rep$oncmap_reason, c(
     "before monitoring start", "medication not selected", "missing timestamp",
-    "unparseable timestamp", NA, NA, NA, NA, "burst over prescribed doses per period"
+    "unparseable timestamp", NA, NA, rep("part of an actuation burst", 3)
   ))
   expect_equal(rep$oncmap_used, is.na(rep$oncmap_reason))
   expect_equal(rep$oncmap_timestamp[5], as.POSIXct("2026-01-06 09:00:00", tz = "UTC"))
