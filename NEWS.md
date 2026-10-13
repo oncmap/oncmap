@@ -8,6 +8,21 @@
   columns (comma separated), which are joined with a space before parsing.
 - Fixed string-based format filters and `patchcap` value matching.
 
+## Medication filter
+
+- Each input format now declares a `medication_header` column (`NA` when the
+  device does not record the medication): `ecap3` (`Medications`),
+  `adheretech`/`adheretechxls`/`clevercap` (`Medication`) and `findair`
+  (`drug`).
+- `read_input()` and `process_eamd()` gain a `medication` argument to keep
+  only the actuations of one or more medications. `NULL` (the default)
+  processes all of them. A medication not in the file is an error listing
+  those that are; for a format with no medication column the filter is
+  ignored with a warning.
+- `read_input()` returns `medications`, the medications present in the file,
+  and a per-actuation `medication` column in `data`.
+- `process_eamd()` labels the report with `medication` when `med` is not set.
+
 ## Bug fixes
 
 - `report_adherence()` -- `adhweek` now covers 7 calendar days. The rolling

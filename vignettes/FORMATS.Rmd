@@ -20,6 +20,8 @@ library(oncmap)
 
 All timestamps are assumed in the patient's timezone and then internally encoded as UTC to avoid inconsistencies with operator settings.
 
+Formats that record the medication name declare it in `medication_header` (ECAP3 "Medications", ADHERETECH and CLEVERCAP "Medication", FINDAIR "drug"). Pass `medication` to `read_input()` or `process_eamd()` to process only those actuations; leave it `NULL` to process all of them. For formats without a medication column the filter is ignored with a warning.
+
 ## ECAP OLD
 * Device ID column "Package ID"
 * No defined headers

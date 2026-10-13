@@ -13,6 +13,7 @@ One input format per row described by the following variables:
   \item{\code{deviceid_header}}{character Device ID column in the input data}
   \item{\code{headers}}{character Comma separated list of expected column headers}
   \item{\code{patientid_header}}{character Patient ID column in the input data}
+  \item{\code{medication_header}}{character Medication column in the input data (NA if the format has none)}
   \item{\code{datetime_header}}{character Actuation Date/Time column in the input data; a comma separated list of columns (e.g. \code{"date,time"}) is joined with a space before parsing}
   \item{\code{datetime_format}}{character Actuation Date/Time format}
   \item{\code{filter}}{character Inclusion/Exclusion filter to apply on the input data}

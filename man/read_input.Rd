@@ -9,7 +9,8 @@ read_input(
   include_formats = NULL,
   exclude_formats = NULL,
   formats_def = NULL,
-  infile_data_output = FALSE
+  infile_data_output = FALSE,
+  medication = NULL
 )
 }
 \arguments{
@@ -22,6 +23,10 @@ read_input(
 \item{formats_def}{New formats definition}
 
 \item{infile_data_output}{Include infile data frame in the result}
+
+\item{medication}{Medication name(s) to keep. \code{NULL} (default) keeps
+all actuations. Matched exactly against the format's \code{medication_header}
+column; ignored with a warning when the format has no medication column.}
 }
 \value{
 A list of output variables
@@ -31,6 +36,8 @@ A list of output variables
   \item \code{patient_id} - Extracted patient_id
   \item \code{device_id} - Extracted device_id
   \item \code{data} - Extracted timestamps
+  \item \code{medications} - Medications present in the input (\code{NULL} if the format has no medication column)
+  \item \code{medication} - Medication filter applied (\code{NULL} if none)
   \item \code{log} - Log of the format detection
   \item \code{infile_data} - Raw input data
 }

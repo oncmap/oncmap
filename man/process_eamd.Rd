@@ -15,7 +15,8 @@ process_eamd(
   nonmonit = NULL,
   med = "",
   adhstart = NULL,
-  adhend = NULL
+  adhend = NULL,
+  medication = NULL
 )
 }
 \arguments{
@@ -35,11 +36,13 @@ process_eamd(
 
 \item{nonmonit}{Non-monitored date intervals}
 
-\item{med}{Medication name}
+\item{med}{Medication name used to label the report; defaults to \code{medication} when that is given}
 
 \item{adhstart}{Report adherence start date}
 
 \item{adhend}{Report adherence end date}
+
+\item{medication}{Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications}
 }
 \value{
 A list containing variables:

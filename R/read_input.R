@@ -4,6 +4,9 @@
 #' @param exclude_formats Which formats to exclude from checking
 #' @param formats_def New formats definition
 #' @param infile_data_output Include infile data frame in the result
+#' @param medication Medication name(s) to keep. \code{NULL} (default) keeps
+#'   all actuations. Matched exactly against the format's \code{medication_header}
+#'   column; ignored with a warning when the format has no medication column.
 #' @return A list of output variables
 #' \itemize{
 #'   \item \code{format} - Detected input format name
@@ -11,6 +14,8 @@
 #'   \item \code{patient_id} - Extracted patient_id
 #'   \item \code{device_id} - Extracted device_id
 #'   \item \code{data} - Extracted timestamps
+#'   \item \code{medications} - Medications present in the input (\code{NULL} if the format has no medication column)
+#'   \item \code{medication} - Medication filter applied (\code{NULL} if none)
 #'   \item \code{log} - Log of the format detection
 #'   \item \code{infile_data} - Raw input data
 #' }
@@ -25,7 +30,8 @@
 #' @export
 read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
                        formats_def = NULL,
-                       infile_data_output = FALSE) {
+                       infile_data_output = FALSE,
+                       medication = NULL) {
   # a missing file would otherwise fail every format in turn and return an
   # all-NULL result, which reads as "no format matched" rather than "no file"
   if (!file.exists(infile)) stop("input file not found: ", infile)
@@ -152,6 +158,15 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       next
     }
 
+    # formats_def created before medication_header existed has no such column
+    medication_header <- if ("medication_header" %in% names(format)) format$medication_header else NA
+
+    # if the format has medication_header specified validate it exists
+    if (!is.na(medication_header) && !(medication_header %in% colnames(infile_data))) {
+      log <- rbind(log, data.frame(format = format_name, message = "header for medication not present"))
+      next
+    }
+
     data <- infile_data
 
     # patient id on the first line of the header
@@ -230,7 +245,8 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       }
     }
 
-    # extract timestamps
+    # extract timestamps (and the medication of each actuation, when known)
+    data_medication <- if (!is.na(medication_header)) data[[medication_header]] else NULL
     data <- data[, datetime_headers]
     if (length(datetime_headers) > 1) {
       # join split date/time columns with a space; a row missing any part is NA
@@ -240,6 +256,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       data[[1]] <- joined
     }
     colnames(data) <- "timestamp_infile"
+    if (!is.null(data_medication)) data$medication <- data_medication
 
     # remove NAs from timestamps
     data <- data[!is.na(data$timestamp_infile), ]
@@ -263,6 +280,25 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       next
     }
 
+    # keep only actuations of the requested medication(s) -- applied once the
+    # format is confirmed, so an unknown medication cannot abort detection
+    medications <- NULL
+    if (!is.null(data_medication)) {
+      medications <- unique(data$medication[!is.na(data$medication)])
+    }
+    if (!is.null(medication)) {
+      if (is.null(medications)) {
+        warning("input format ", format_name, " has no medication column -- medication filter ignored, using all actuations")
+        log <- rbind(log, data.frame(format = format_name, message = "no medication column, medication filter ignored"))
+      } else {
+        if (!any(medication %in% medications)) {
+          stop("medication ", paste0("'", medication, "'", collapse = ", "),
+               " not found in input -- available: ", paste0("'", medications, "'", collapse = ", "))
+        }
+        data <- data[!is.na(data$medication) & data$medication %in% medication, ]
+      }
+    }
+
     log <- rbind(log, data.frame(format = format_name, message = "ok"))
 
     # validate date format
@@ -271,8 +307,8 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     # filter (if specified)
     # return list of openings, patient id, device id
     if (infile_data_output == FALSE) infile_data <- NULL
-    return(list(format = format_name, format_def = format, patient_id = patient_id, device_id = device_id, data = data, log = log, infile_data = infile_data)) # , est_offset = est_offset))
+    return(list(format = format_name, format_def = format, patient_id = patient_id, device_id = device_id, data = data, medications = medications, medication = medication, log = log, infile_data = infile_data)) # , est_offset = est_offset))
   }
   if (infile_data_output == FALSE) infile_data <- NULL
-  return(list(format = NULL, format_def = NULL, patient_id = NULL, device_id = NULL, data = NULL, log = log, infile_data = infile_data))
+  return(list(format = NULL, format_def = NULL, patient_id = NULL, device_id = NULL, data = NULL, medications = NULL, medication = medication, log = log, infile_data = infile_data))
 }

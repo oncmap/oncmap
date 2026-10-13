@@ -7,7 +7,8 @@
 #' @param regimen Regimen - regimen definition
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
-#' @param med Medication name
+#' @param med Medication name used to label the report; defaults to \code{medication} when that is given
+#' @param medication Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications
 #' @param adhstart Report adherence start date
 #' @param adhend Report adherence end date
 #' @return A list containing variables:
@@ -32,12 +33,15 @@ process_eamd <- function(infile,
                          nonmonit = NULL,
                          med = "",
                          adhstart = NULL,
-                         adhend = NULL) {
-  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output)
+                         adhend = NULL,
+                         medication = NULL) {
+  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output,
+                     medication = medication)
   if (is.null(data$data)) {
     return(data)
   }
   if (is.null(regimen)) regimen <- regimens[1, ]
+  if (med == "" && !is.null(medication)) med <- paste(medication, collapse = ", ")
   if (is.null(patinfo)) patinfo <- list(day_start_time = "00:00")
   pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit)
   report_output <- report_adherence(pre$all_periods, pre$timestamps, med, patinfo = patinfo, adhstart = adhstart, adhend = adhend)
