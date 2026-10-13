@@ -1,8 +1,7 @@
-# oncmap 0.1.8
+# oncmap 0.1.9
 
 ## New input formats
 
-- Added `clevercap` input format.
 - Added `patchcap` input format.
 - Added `findair` input format. `datetime_header` may now name several
   columns (comma separated), which are joined with a space before parsing.
@@ -85,6 +84,10 @@
 - Added `inst/extdata/sample-data-ecap1.csv` as example data.
 - Corrected the declared R dependency (`3.60` was a typo for `3.6.0`) and
   declared the `tools` and `utils` dependencies.
+
+# oncmap 0.1.8
+
+- Added `clevercap` input format.
 
 # oncmap 0.1.7
 
