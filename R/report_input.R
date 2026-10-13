@@ -9,6 +9,7 @@
 #'   \item \code{oncmap_timestamp} - Parsed actuation timestamp
 #'   \item \code{oncmap_used} - \code{TRUE} if the actuation was counted
 #'   \item \code{oncmap_reason} - Why the row was not used (\code{NA} if used)
+#'   \item \code{oncmap_dose} - Dose the actuation counted towards (\code{NA} if not used)
 #' }
 #' @examples
 #' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
@@ -34,6 +35,10 @@ report_input <- function(input, timestamps) {
   }
   excluded <- rep(NA, length(sorted))
   excluded[sorted] <- timestamps$excluded
+  dose <- rep(NA_integer_, length(sorted))
+  if (!is.null(timestamps$dose)) dose[sorted] <- timestamps$dose
+  oncmap_dose <- rep(NA_integer_, n)
+  oncmap_dose[rows] <- dose
 
   exclusion_reasons <- c(
     "1" = "within min_wait of the previous actuation",
@@ -50,5 +55,6 @@ report_input <- function(input, timestamps) {
   out$oncmap_timestamp <- oncmap_timestamp
   out$oncmap_used <- is.na(reason)
   out$oncmap_reason <- reason
+  out$oncmap_dose <- oncmap_dose
   out
 }

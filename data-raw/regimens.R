@@ -9,7 +9,9 @@ regimens <- rbind(
     days_per_week = 7,
     weekdays = "all",
     burst_actuations = NA,
-    burst_window = NA
+    burst_window = NA,
+    actuations_per_dose = 1,
+    dose_group_window = NA
   ),
   "daily12hr" = data.frame(
     name = "12hr daily",
@@ -19,7 +21,9 @@ regimens <- rbind(
     days_per_week = 7,
     weekdays = "all",
     burst_actuations = NA,
-    burst_window = NA
+    burst_window = NA,
+    actuations_per_dose = 1,
+    dose_group_window = NA
   ),
   "daily2" = data.frame(
     name = "2 doses daily",
@@ -29,7 +33,9 @@ regimens <- rbind(
     days_per_week = 7,
     weekdays = "all",
     burst_actuations = NA,
-    burst_window = NA
+    burst_window = NA,
+    actuations_per_dose = 1,
+    dose_group_window = NA
   ),
   "3daweekmtuw" = data.frame(
     name = "Three days a week (M,Tu,W)",
@@ -39,7 +45,9 @@ regimens <- rbind(
     days_per_week = 3,
     weekdays = "1,2,3",
     burst_actuations = NA,
-    burst_window = NA
+    burst_window = NA,
+    actuations_per_dose = 1,
+    dose_group_window = NA
   ),
   "3daweekmwf" = data.frame(
     name = "Three days a week (M,W,F)",
@@ -49,7 +57,9 @@ regimens <- rbind(
     days_per_week = 3,
     weekdays = "1,3,5",
     burst_actuations = NA,
-    burst_window = NA
+    burst_window = NA,
+    actuations_per_dose = 1,
+    dose_group_window = NA
   )
 )
 

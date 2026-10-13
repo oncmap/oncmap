@@ -45,6 +45,9 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
   all_periods$studyday <- as.numeric(1 + round((all_periods$day - min(all_periods$day)) / 86400))
   all_periods$mtime <- format(all_periods$start, format = "%H:%M")
 
+  # dose (and any other extra columns) are not part of the diff computation
+  timestamps <- timestamps[, c("timestamps", "excluded")]
+
   # diff for non excluded timestamps
   timestamps_diff <- timestamps[timestamps$excluded == 0, ] - dplyr::lag(timestamps[timestamps$excluded == 0, ])
   colnames(timestamps_diff) <- c("diff", "ex")
@@ -85,7 +88,10 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
 
   if (is(all_periods$doserx, "NULL")) all_periods$doserx <- 1
 
-  all_periods$dosecorr <- if_else("&"(all_periods$opens == all_periods$doserx, all_periods$nonmon == 0), "1",
+  # a correct period has the prescribed number of doses, each of at least the
+  # prescribed actuations (all_periods from before dose grouping lacks fulldoses)
+  fulldoses <- if (is(all_periods$fulldoses, "NULL")) all_periods$opens else all_periods$fulldoses
+  all_periods$dosecorr <- if_else("&"(all_periods$opens == all_periods$doserx & fulldoses == all_periods$opens, all_periods$nonmon == 0), "1",
     if_else(all_periods$nonmon == 0, "0", " ")
   )
 
@@ -117,6 +123,10 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
   # if any of the “diff” variables < or > X AND “nonmon” = 0
   # all_periods$timing <-
 
+  # all_periods from before dose grouping: every opening is a one-actuation dose
+  if (is(all_periods$actuations, "NULL")) all_periods$actuations <- all_periods$opens
+  if (is(all_periods$actuationsrx, "NULL")) all_periods$actuationsrx <- all_periods$doserx
+
   adh_df <-
     all_periods %>%
     dplyr::filter(day >= adhstart) %>%
@@ -125,7 +135,9 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
     dplyr::summarise(
       daysadh = sum(as.numeric(dosecorr)) / dplyr::n(),
       daysdose = sum(as.numeric(dosetkn)) / dplyr::n(),
-      perdoses = sum(as.numeric(opens)) / sum(as.numeric(doserx)),
+      # actuations capped per dose at the prescribed size; equals opens / doserx
+      # when every dose is one actuation
+      perdoses = sum(as.numeric(actuations)) / sum(as.numeric(actuationsrx)),
       n = dplyr::n()
     )
   # daysadh <- sum("dosecorr\" WHEN \"nonmon\" = 0)" / sum(nonmon = 0)

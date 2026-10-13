@@ -1,3 +1,22 @@
+# oncmap (development version)
+
+## Dose grouping
+
+- Regimens gain `actuations_per_dose` (default 1) and `dose_group_window`
+  (seconds, `NA` disables). Counted actuations chain into one dose while each
+  is at most `dose_group_window` seconds after the previous one -- `60` joins
+  FindAir puffs in consecutive minutes. A dose counts in the period of its
+  first actuation.
+- With grouping, `opens` counts doses, a period is correct when it has
+  `doses_per_period` doses each of at least `actuations_per_dose` actuations,
+  and `perdoses` counts actuations capped per dose at `actuations_per_dose`
+  against the prescribed actuations. `min_wait` applies between doses rather
+  than actuations, and burst capping caps at the prescribed actuations.
+- `all_periods` gains `fulldoses`, `actuations` and `actuationsrx`;
+  `adherence_preprocess()` timestamps and `input_report` gain the dose each
+  counted actuation belongs to (`dose`, `oncmap_dose`).
+- The defaults leave results unchanged: every actuation is a dose of one.
+
 # oncmap 0.1.9
 
 ## New input formats

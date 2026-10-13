@@ -18,6 +18,7 @@ The input rows (\code{input$infile_data}) with added columns:
   \item \code{oncmap_timestamp} - Parsed actuation timestamp
   \item \code{oncmap_used} - \code{TRUE} if the actuation was counted
   \item \code{oncmap_reason} - Why the row was not used (\code{NA} if used)
+  \item \code{oncmap_dose} - Dose the actuation counted towards (\code{NA} if not used)
 }
 }
 \description{
