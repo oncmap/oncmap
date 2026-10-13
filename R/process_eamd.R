@@ -7,7 +7,10 @@
 #' @param regimen Regimen - regimen definition
 #' @param patinfo Patient info - patient specific information
 #' @param nonmonit Non-monitored date intervals
-#' @param med Medication name
+#' @param med Medication name used to label the report; defaults to \code{medication} when that is given
+#' @param include_manual Count manually entered actuations (default \code{TRUE}). Has no effect for
+#'   formats that do not mark manual entries
+#' @param medication Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications
 #' @param adhstart Report adherence start date
 #' @param adhend Report adherence end date
 #' @return A list containing variables:
@@ -16,6 +19,7 @@
 #'   \item \code{adh} - Summary adherence statistic
 #'   \item \code{timestamps} - Raw input data
 #'   \item \code{patient_id} - Inferred Patient ID
+#'   \item \code{input_report} - Input rows labeled with whether each was used and why not, see \code{\link{report_input}}
 #' }
 #' @examples
 #' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
@@ -32,18 +36,27 @@ process_eamd <- function(infile,
                          nonmonit = NULL,
                          med = "",
                          adhstart = NULL,
-                         adhend = NULL) {
-  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output)
+                         adhend = NULL,
+                         medication = NULL,
+                         include_manual = TRUE) {
+  # infile_data is always read -- input_report needs it
+  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output = TRUE,
+                     medication = medication)
   if (is.null(data$data)) {
+    if (!infile_data_output) data["infile_data"] <- list(NULL)
     return(data)
   }
   if (is.null(regimen)) regimen <- regimens[1, ]
+  if (med == "" && !is.null(medication)) med <- paste(medication, collapse = ", ")
   if (is.null(patinfo)) patinfo <- list(day_start_time = "00:00")
-  pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit)
+  pre <- adherence_preprocess(data$data$timestamp, regimen, patinfo = patinfo, nonmonit = nonmonit,
+                              manual = data$data[["manual"]], include_manual = include_manual)
   report_output <- report_adherence(pre$all_periods, pre$timestamps, med, patinfo = patinfo, adhstart = adhstart, adhend = adhend)
   report_output$all_periods <- pre$all_periods
   report_output$timestamps <- pre$timestamps
   report_output$patient_id <- data$patient_id
+  report_output$input_report <- report_input(data, pre$timestamps)
+  if (!infile_data_output) data["infile_data"] <- list(NULL)
   report_output$input_data <- data
   return(report_output)
 }

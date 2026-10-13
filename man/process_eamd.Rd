@@ -15,7 +15,9 @@ process_eamd(
   nonmonit = NULL,
   med = "",
   adhstart = NULL,
-  adhend = NULL
+  adhend = NULL,
+  medication = NULL,
+  include_manual = TRUE
 )
 }
 \arguments{
@@ -35,11 +37,16 @@ process_eamd(
 
 \item{nonmonit}{Non-monitored date intervals}
 
-\item{med}{Medication name}
+\item{med}{Medication name used to label the report; defaults to \code{medication} when that is given}
 
 \item{adhstart}{Report adherence start date}
 
 \item{adhend}{Report adherence end date}
+
+\item{medication}{Medication name(s) to keep, see \code{\link{read_input}}. \code{NULL} (default) processes all medications}
+
+\item{include_manual}{Count manually entered actuations (default \code{TRUE}). Has no effect for
+formats that do not mark manual entries}
 }
 \value{
 A list containing variables:
@@ -48,6 +55,7 @@ A list containing variables:
   \item \code{adh} - Summary adherence statistic
   \item \code{timestamps} - Raw input data
   \item \code{patient_id} - Inferred Patient ID
+  \item \code{input_report} - Input rows labeled with whether each was used and why not, see \code{\link{report_input}}
 }
 }
 \description{

@@ -63,3 +63,49 @@ test_that("read_input drops rows missing part of a split timestamp", {
   expect_equal(res$format, "findair")
   expect_equal(nrow(res$data), 1)
 })
+
+test_that("read_input reports medications and keeps all of them by default", {
+  res <- read_input("test_findair.csv")
+  expect_equal(res$medications, c("Advair", "Advair HFA"))
+  expect_null(res$medication)
+  expect_equal(nrow(res$data), 9)
+  expect_equal(read_input("test_adheretech.csv")$medications, "eACT")
+  expect_equal(read_input("test_clevercap.xlsx")$medications, "Mercaptopurine")
+  expect_equal(read_input("test_ecap3.csv")$medications, "Study Drug")
+})
+
+test_that("read_input filters actuations by medication", {
+  res <- read_input("test_findair.csv", medication = "Advair HFA")
+  expect_equal(res$format, "findair")
+  expect_equal(nrow(res$data), 3)
+  expect_true(all(res$data$medication == "Advair HFA"))
+  # medications still lists everything in the file
+  expect_equal(res$medications, c("Advair", "Advair HFA"))
+
+  res <- read_input("test_findair.csv", medication = c("Advair", "Advair HFA"))
+  expect_equal(nrow(res$data), 9)
+})
+
+test_that("read_input errors on a medication not in the input", {
+  expect_error(
+    read_input("test_findair.csv", medication = "Flovent"),
+    "medication 'Flovent' not found in input -- available: 'Advair', 'Advair HFA'"
+  )
+})
+
+test_that("read_input ignores the medication filter when the format has no medication column", {
+  expect_warning(
+    res <- read_input("test_ecap1.csv", medication = "Advair"),
+    "has no medication column"
+  )
+  expect_equal(res$format, "ecap1")
+  expect_null(res$medications)
+  expect_equal(nrow(res$data), nrow(read_input("test_ecap1.csv")$data))
+})
+
+test_that("read_input accepts a formats_def without medication_header", {
+  fd <- input_formats["findair", setdiff(names(input_formats), "medication_header")]
+  res <- read_input("test_findair.csv", formats_def = fd)
+  expect_equal(res$format, "findair")
+  expect_null(res$medications)
+})
