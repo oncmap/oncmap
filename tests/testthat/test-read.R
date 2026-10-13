@@ -42,3 +42,24 @@ test_that("the documented examples resolve their input files", {
     expect_false(is.null(read_input(input_file)$format))
   }
 })
+
+test_that("read_input joins split date and time columns", {
+  res <- read_input("test_findair.csv")
+  expect_equal(res$format, "findair")
+  expect_equal(nrow(res$data), 9)
+  expect_equal(res$data$timestamp_infile[1], "1/26/26 9:47 AM")
+  expect_equal(res$data$timestamp[1], as.POSIXct("2026-01-26 09:47:00", tz = "UTC"))
+  expect_false(anyNA(res$data$timestamp))
+})
+
+test_that("read_input drops rows missing part of a split timestamp", {
+  f <- tempfile(fileext = ".csv")
+  writeLines(c(
+    "date,time,drug,planned,manual",
+    "1/26/26,9:47 AM,Advair,11:05 AM,0",
+    "1/27/26,,Advair,11:05 AM,0"
+  ), f)
+  res <- read_input(f)
+  expect_equal(res$format, "findair")
+  expect_equal(nrow(res$data), 1)
+})

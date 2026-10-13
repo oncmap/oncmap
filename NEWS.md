@@ -4,6 +4,8 @@
 
 - Added `clevercap` input format.
 - Added `patchcap` input format.
+- Added `findair` input format. `datetime_header` may now name several
+  columns (comma separated), which are joined with a space before parsing.
 - Fixed string-based format filters and `patchcap` value matching.
 
 ## Bug fixes

@@ -151,6 +151,18 @@ input_formats <- rbind(
     datetime_format = "%Y-%m-%dT%H:%M:%S", # "YYYY-MM-DDTHH:MM:SS-TZ",
     tz_colon_fix = FALSE,
     filter = "`Primary Value`=='1' | `Primary Value`=='1.00'"
+  ),
+  "findair" = data.frame(
+    skip_header_lines = 0,
+    header_line_patientid = NA,
+    patientid_filename = NA,
+    deviceid_header = NA,
+    headers = "date,time,drug,planned,manual",
+    patientid_header = NA,
+    datetime_header = "date,time", # date and time are in separate columns
+    datetime_format = "%m/%d/%y %I:%M %p", # "m/d/yy h:mm AM",
+    tz_colon_fix = FALSE,
+    filter = NA
   )
 )
 
