@@ -17,6 +17,7 @@
 #'   \item \code{adh} - Summary adherence statistic
 #'   \item \code{timestamps} - Raw input data
 #'   \item \code{patient_id} - Inferred Patient ID
+#'   \item \code{input_report} - Input rows labeled with whether each was used and why not, see \code{\link{report_input}}
 #' }
 #' @examples
 #' input_file <- system.file("extdata", "sample-data-ecap2.csv", package = "oncmap")
@@ -35,9 +36,11 @@ process_eamd <- function(infile,
                          adhstart = NULL,
                          adhend = NULL,
                          medication = NULL) {
-  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output,
+  # infile_data is always read -- input_report needs it
+  data <- read_input(infile, include_formats, exclude_formats, formats_def, infile_data_output = TRUE,
                      medication = medication)
   if (is.null(data$data)) {
+    if (!infile_data_output) data["infile_data"] <- list(NULL)
     return(data)
   }
   if (is.null(regimen)) regimen <- regimens[1, ]
@@ -48,6 +51,8 @@ process_eamd <- function(infile,
   report_output$all_periods <- pre$all_periods
   report_output$timestamps <- pre$timestamps
   report_output$patient_id <- data$patient_id
+  report_output$input_report <- report_input(data, pre$timestamps)
+  if (!infile_data_output) data["infile_data"] <- list(NULL)
   report_output$input_data <- data
   return(report_output)
 }

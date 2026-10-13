@@ -51,6 +51,7 @@ A list containing variables:
   \item \code{adh} - Summary adherence statistic
   \item \code{timestamps} - Raw input data
   \item \code{patient_id} - Inferred Patient ID
+  \item \code{input_report} - Input rows labeled with whether each was used and why not, see \code{\link{report_input}}
 }
 }
 \description{

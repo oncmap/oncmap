@@ -34,6 +34,18 @@
   disables it. E.g. `"8,3"` / `"120,60"`: 8 or more within 2 minutes, or 3 or
   more within 1 minute.
 
+## Input report
+
+- `process_eamd()` returns `input_report`: the input file's rows, each labeled
+  with its parsed timestamp, whether it counted towards adherence
+  (`oncmap_used`) and, if not, why (`oncmap_reason`) -- removed by the format
+  filter, medication not selected, missing or unparseable timestamp, within
+  `min_wait`, outside the monitored interval, non-monitored, or burst capped.
+  Also available as `report_input()`.
+- `read_input()` returns `dropped` (rows not read and why) and an `input_row`
+  column in `data`. Rows whose timestamp cannot be parsed are now dropped
+  rather than returned as `NA`, which made `adherence_preprocess()` fail.
+
 ## Bug fixes
 
 - `report_adherence()` -- `adhweek` now covers 7 calendar days. The rolling

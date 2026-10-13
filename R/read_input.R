@@ -13,9 +13,10 @@
 #'   \item \code{format_def} - Detected format definition
 #'   \item \code{patient_id} - Extracted patient_id
 #'   \item \code{device_id} - Extracted device_id
-#'   \item \code{data} - Extracted timestamps
+#'   \item \code{data} - Extracted timestamps; \code{input_row} is each actuation's row in \code{infile_data}
 #'   \item \code{medications} - Medications present in the input (\code{NULL} if the format has no medication column)
 #'   \item \code{medication} - Medication filter applied (\code{NULL} if none)
+#'   \item \code{dropped} - Rows of \code{infile_data} not in \code{data} (\code{input_row}) and why (\code{reason})
 #'   \item \code{log} - Log of the format detection
 #'   \item \code{infile_data} - Raw input data
 #' }
@@ -168,6 +169,9 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     }
 
     data <- infile_data
+    # remember each row's position in infile_data, so dropped rows can be reported
+    data$oncmap_input_row <- seq_len(nrow(data))
+    dropped_reason <- rep(NA_character_, nrow(infile_data))
 
     # patient id on the first line of the header
     if (!is.na(format$header_line_patientid) && infile_extension == "csv") {
@@ -202,6 +206,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
         }
       )
       if (is.null(data)) next
+      dropped_reason[setdiff(seq_len(nrow(infile_data)), data$oncmap_input_row)] <- paste("format filter:", format$filter)
       # print(filter_str)
       # eval(parse(text = filter_str))
     }
@@ -247,6 +252,7 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
 
     # extract timestamps (and the medication of each actuation, when known)
     data_medication <- if (!is.na(medication_header)) data[[medication_header]] else NULL
+    data_input_row <- data$oncmap_input_row
     data <- data[, datetime_headers]
     if (length(datetime_headers) > 1) {
       # join split date/time columns with a space; a row missing any part is NA
@@ -257,8 +263,10 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     }
     colnames(data) <- "timestamp_infile"
     if (!is.null(data_medication)) data$medication <- data_medication
+    data$input_row <- data_input_row
 
     # remove NAs from timestamps
+    dropped_reason[data$input_row[is.na(data$timestamp_infile)]] <- "missing timestamp"
     data <- data[!is.na(data$timestamp_infile), ]
 
     if (is.na(format$datetime_format)) {
@@ -279,6 +287,8 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       log <- rbind(log, data.frame(format = format_name, message = "All timestamps are NA. Skipping this format"))
       next
     }
+    dropped_reason[data$input_row[is.na(data$timestamp)]] <- "unparseable timestamp"
+    data <- data[!is.na(data$timestamp), ]
 
     # keep only actuations of the requested medication(s) -- applied once the
     # format is confirmed, so an unknown medication cannot abort detection
@@ -295,7 +305,9 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
           stop("medication ", paste0("'", medication, "'", collapse = ", "),
                " not found in input -- available: ", paste0("'", medications, "'", collapse = ", "))
         }
-        data <- data[!is.na(data$medication) & data$medication %in% medication, ]
+        selected <- !is.na(data$medication) & data$medication %in% medication
+        dropped_reason[data$input_row[!selected]] <- "medication not selected"
+        data <- data[selected, ]
       }
     }
 
@@ -306,9 +318,10 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
     # verify consistent device id (if specified)
     # filter (if specified)
     # return list of openings, patient id, device id
+    dropped <- data.frame(input_row = which(!is.na(dropped_reason)), reason = dropped_reason[!is.na(dropped_reason)])
     if (infile_data_output == FALSE) infile_data <- NULL
-    return(list(format = format_name, format_def = format, patient_id = patient_id, device_id = device_id, data = data, medications = medications, medication = medication, log = log, infile_data = infile_data)) # , est_offset = est_offset))
+    return(list(format = format_name, format_def = format, patient_id = patient_id, device_id = device_id, data = data, medications = medications, medication = medication, dropped = dropped, log = log, infile_data = infile_data)) # , est_offset = est_offset))
   }
   if (infile_data_output == FALSE) infile_data <- NULL
-  return(list(format = NULL, format_def = NULL, patient_id = NULL, device_id = NULL, data = NULL, medications = NULL, medication = medication, log = log, infile_data = infile_data))
+  return(list(format = NULL, format_def = NULL, patient_id = NULL, device_id = NULL, data = NULL, medications = NULL, medication = medication, dropped = NULL, log = log, infile_data = infile_data))
 }
