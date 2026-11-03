@@ -13,7 +13,7 @@
 #'   \item{\code{manual_values}}{character Comma separated \code{manual_header} values that mark a manual entry}
 #'   \item{\code{min_wait}}{integer Minimum wait (in seconds) that overrides the regimen's \code{min_wait} in \code{process_eamd} (NA keeps the regimen's)}
 #'   \item{\code{datetime_header}}{character Actuation Date/Time column in the input data; a comma separated list of columns (e.g. \code{"date,time"}) is joined with a space before parsing}
-#'   \item{\code{datetime_format}}{character Actuation Date/Time format}
+#'   \item{\code{datetime_format}}{character Actuation Date/Time format; alternatives separated by \code{|} are tried in order for each row}
 #'   \item{\code{filter}}{character Inclusion/Exclusion filter to apply on the input data}
 #'   \item{\code{tz_colon_fix}}{logical Fix for when TZ contains with ':'}
 #' }

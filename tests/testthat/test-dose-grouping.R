@@ -33,6 +33,57 @@ test_that("actuations in consecutive minutes form one dose", {
   expect_equal(adh$perdoses, 8 / 10)
 })
 
+test_that("doses reports fractional doses in prescribed dose units", {
+  ts <- c(
+    at(1, c("09:00:00", "09:01:00")), # full dose
+    at(2, "09:00:00"), # 1 of 2 puffs
+    at(3, c("09:00:00", "09:00:30", "09:01:00", "09:01:30", "09:02:00")), # extra puffs are capped
+    at(4, "09:00:00") # keeps day 4 in range
+  )
+  pre <- adherence_preprocess(ts, grouping_regimen())
+  expect_equal(pre$all_periods$doses, c(1, 0.5, 1, 0.5))
+  rep <- report_adherence(pre$all_periods, pre$timestamps, "med")
+  expect_equal(rep$report$doses, c(1, 0.5, 1, 0.5))
+  # the summary percentage is the same ratio
+  expect_equal(rep$adh$perdoses, sum(rep$report$doses) / sum(rep$report$doserx))
+
+  pre <- adherence_preprocess(at(1, "09:00:00"), grouping_regimen(actuations_per_dose = 3))
+  expect_equal(pre$all_periods$doses, 1 / 3)
+})
+
+test_that("adhday is the percentage of the day's prescribed doses taken", {
+  ts <- c(
+    at(1, c("09:00:00", "09:01:00", "21:00:00", "21:01:00")), # both full
+    at(2, c("09:00:00", "09:01:00")), # morning only
+    at(3, "09:00:00"), # 1 of 4 puffs
+    at(5, "21:00:00") # keeps day 5 in range; day 4 has none
+  )
+  pre <- adherence_preprocess(ts, grouping_regimen(periods_per_day = 2))
+  rep <- report_adherence(pre$all_periods, pre$timestamps, "med")$report
+  expect_equal(rep$adhday[seq(1, 9, by = 2)], c("100", "50", "25", "0", "25"))
+  # the same value on both periods of a day
+  expect_equal(rep$adhday[seq(1, 9, by = 2)], rep$adhday[seq(2, 10, by = 2)])
+
+  # a non-monitored day is blank, and a partly monitored day counts only its monitored periods
+  ap <- pre$all_periods
+  ap$nonmon[ap$day == ap$day[3]] <- 1
+  ap$nonmon[5] <- 1
+  rep <- report_adherence(ap, pre$timestamps, "med")$report
+  expect_equal(rep$adhday[3:4], c("", ""))
+  expect_equal(rep$adhday[5:6], c("0", "0"))
+
+  # nothing prescribed: blank
+  ap <- pre$all_periods
+  ap$doserx[ap$day == ap$day[7]] <- 0
+  expect_equal(report_adherence(ap, pre$timestamps, "med")$report$adhday[7:8], c("", ""))
+})
+
+test_that("doses falls back to opens for all_periods from before dose grouping", {
+  pre <- adherence_preprocess(at(1, "09:00:00"), grouping_regimen(actuations_per_dose = 1))
+  ap <- pre$all_periods[, setdiff(names(pre$all_periods), c("doses", "fulldoses", "actuations", "actuationsrx"))]
+  expect_equal(report_adherence(ap, pre$timestamps, "med")$report$doses, ap$opens)
+})
+
 test_that("a dose counts in the period of its first actuation", {
   reg <- grouping_regimen(periods_per_day = 2)
   pre <- adherence_preprocess(at(1, c("11:59:00", "12:00:00")), reg)

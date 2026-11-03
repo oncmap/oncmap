@@ -32,8 +32,9 @@ A list of output variables
 \itemize{
   \item \code{all_periods} - Processed timestamps into periods applying input parameters: \code{opens}
     counts doses, \code{fulldoses} doses of at least \code{actuations_per_dose} actuations,
-    \code{actuations} counted actuations capped per dose at \code{actuations_per_dose}, and
-    \code{actuationsrx} the prescribed actuations
+    \code{actuations} counted actuations capped per dose at \code{actuations_per_dose},
+    \code{actuationsrx} the prescribed actuations, and \code{doses} the doses taken in
+    prescribed dose units (\code{actuations / actuations_per_dose}, e.g. 0.5 for 1 of 2 puffs)
   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
     4 non-monitored interval, 5 part of an actuation burst (see \code{\link{regimens}}),
