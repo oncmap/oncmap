@@ -14,6 +14,7 @@
 #' @importFrom methods is
 #' @importFrom dplyr between select mutate if_else summarise %>%
 #' @importFrom hms as_hms
+#' @importFrom stats ave
 #' @import zoo
 #' @export
 report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adhstart = NULL, adhend = NULL) {
@@ -126,6 +127,15 @@ report_adherence <- function(all_periods, timestamps, med, patinfo = list(), adh
   # all_periods from before dose grouping: every opening is a one-actuation dose
   if (is(all_periods$actuations, "NULL")) all_periods$actuations <- all_periods$opens
   if (is(all_periods$actuationsrx, "NULL")) all_periods$actuationsrx <- all_periods$doserx
+  if (is(all_periods$doses, "NULL")) all_periods$doses <- all_periods$opens
+
+  # adhday = doses / doserx over the monitored periods of the same day; blank when
+  # nothing was prescribed or the whole day is non-monitored
+  monitored <- all_periods$nonmon == 0
+  day_key <- as.character(all_periods$day)
+  day_doses <- ave(all_periods$doses * monitored, day_key, FUN = sum)
+  day_doserx <- ave(all_periods$doserx * monitored, day_key, FUN = sum)
+  all_periods$adhday <- ifelse(day_doserx == 0, "", as.character(round(100 * day_doses / day_doserx)))
 
   adh_df <-
     all_periods %>%

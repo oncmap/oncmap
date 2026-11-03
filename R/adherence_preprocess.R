@@ -10,8 +10,9 @@
 #' \itemize{
 #'   \item \code{all_periods} - Processed timestamps into periods applying input parameters: \code{opens}
 #'     counts doses, \code{fulldoses} doses of at least \code{actuations_per_dose} actuations,
-#'     \code{actuations} counted actuations capped per dose at \code{actuations_per_dose}, and
-#'     \code{actuationsrx} the prescribed actuations
+#'     \code{actuations} counted actuations capped per dose at \code{actuations_per_dose},
+#'     \code{actuationsrx} the prescribed actuations, and \code{doses} the doses taken in
+#'     prescribed dose units (\code{actuations / actuations_per_dose}, e.g. 0.5 for 1 of 2 puffs)
 #'   \item \code{timestamps} - Sorted timestamps with an \code{excluded} code: 0 counted,
 #'     1 within \code{min_wait} of the previous actuation, 2 before start date, 3 after end date,
 #'     4 non-monitored interval, 5 part of an actuation burst (see \code{\link{regimens}}),
@@ -273,6 +274,8 @@ adherence_preprocess <- function(timestamps, regimen, patinfo = list(), nonmonit
   all_periods$fulldoses <- tabulate(dose_period[doses$size >= actuations_per_dose], n_periods)
   all_periods$actuations <- vapply(seq_len(n_periods), function(p) sum(pmin(doses$size[dose_period == p], actuations_per_dose)), numeric(1))
   all_periods$actuationsrx <- all_periods$doserx * actuations_per_dose
+  # doses taken in prescribed dose units, fractional for partial doses
+  all_periods$doses <- all_periods$actuations / actuations_per_dose
 
   return(list(all_periods = all_periods, timestamps = data.frame(timestamps = timestamps, excluded = excluded, dose = dose)))
 }

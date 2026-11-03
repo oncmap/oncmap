@@ -5,6 +5,12 @@
   in order for each row.
 - `oncmap::read_input()` and `oncmap::process_eamd()` no longer fail with
   "object 'input_formats' not found" when the package is not attached.
+- The report gains `doses`: doses taken in prescribed dose units
+  (`actuations / actuations_per_dose`), so 1 of 2 puffs shows as 0.5. Existing
+  columns and summary statistics are unchanged.
+- The report gains `adhday`: daily adherence, the percentage of the day's
+  prescribed doses taken over its monitored periods (blank when nothing was
+  prescribed or the whole day is non-monitored).
 
 # oncmap 0.1.10
 
