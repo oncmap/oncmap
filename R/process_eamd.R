@@ -47,7 +47,7 @@ process_eamd <- function(infile,
     if (!infile_data_output) data["infile_data"] <- list(NULL)
     return(data)
   }
-  if (is.null(regimen)) regimen <- regimens[1, ]
+  if (is.null(regimen)) regimen <- oncmap::regimens[1, ]
   # a format's min_wait (e.g. 0 for inhalers whose puffs are grouped) overrides the regimen's
   format_min_wait <- data$format_def[["min_wait"]]
   if (length(format_min_wait) == 1 && !is.na(format_min_wait)) regimen$min_wait <- as.numeric(format_min_wait)

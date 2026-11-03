@@ -212,7 +212,8 @@ input_formats <- rbind(
     manual_values = "1", # manual = 1 marks a manually logged dose
     min_wait = 0, # puffs are grouped into doses; no wait between them
     datetime_header = "date,time", # date and time are in separate columns
-    datetime_format = "%m/%d/%y %I:%M %p", # "m/d/yy h:mm AM",
+    # 2 digit years first: %Y would read "1/26/26" as the year 0026, while %y rejects "1/26/2026"
+    datetime_format = "%m/%d/%y %I:%M %p|%m/%d/%Y %I:%M %p", # "m/d/yy h:mm AM" or "m/d/yyyy h:mm AM",
     tz_colon_fix = FALSE,
     filter = NA
   )

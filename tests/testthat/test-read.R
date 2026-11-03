@@ -109,3 +109,47 @@ test_that("read_input accepts a formats_def without medication_header", {
   expect_equal(res$format, "findair")
   expect_null(res$medications)
 })
+
+test_that("findair accepts 2 and 4 digit years, in any mix, with CRLF line endings", {
+  lines <- readLines("test_findair.csv")
+  four_digit <- sub("^([0-9]+/[0-9]+)/([0-9]{2}),", "\\1/20\\2,", lines)
+  expect_true(all(grepl("/2026,", four_digit[-1])))
+  write_crlf <- function(x) {
+    f <- tempfile(fileext = ".csv")
+    writeBin(charToRaw(paste0(paste(x, collapse = "\r\n"), "\r\n")), f)
+    f
+  }
+  two <- read_input("test_findair.csv")
+  four <- read_input(write_crlf(four_digit))
+  expect_equal(four$format, "findair")
+  expect_equal(four$data$timestamp[1], as.POSIXct("2026-01-26 09:47:00", tz = "UTC"))
+  expect_equal(four$data$timestamp, two$data$timestamp)
+  expect_equal(four$data$medication, two$data$medication)
+  # a stray \r in the last column would lose the manual flags
+  expect_equal(four$data$manual, two$data$manual)
+  expect_equal(sum(four$data$manual), 2)
+
+  mixed <- lines
+  mixed[c(2, 4)] <- four_digit[c(2, 4)]
+  expect_equal(read_input(write_crlf(mixed))$data$timestamp, two$data$timestamp)
+})
+
+test_that("a row matching no datetime_format alternative is reported as unparseable", {
+  f <- tempfile(fileext = ".csv")
+  writeLines(c(
+    "date,time,drug,planned,manual",
+    "1/26/2026,9:47 AM,Advair,11:05 AM,0",
+    "2026-01-27,9:47 AM,Advair,11:05 AM,0"
+  ), f)
+  res <- read_input(f)
+  expect_equal(nrow(res$data), 1)
+  expect_equal(res$dropped$input_row, 2)
+  expect_equal(res$dropped$reason, "unparseable timestamp")
+})
+
+test_that("a format with a single datetime_format still rejects other forms", {
+  f <- tempfile(fileext = ".csv")
+  writeLines(c("date,time,drug,planned,manual", "1/26/2026,9:47 AM,Advair,11:05 AM,0"), f)
+  single <- transform(input_formats["findair", ], datetime_format = "%m/%d/%y %I:%M %p")
+  expect_null(read_input(f, formats_def = single)$format)
+})

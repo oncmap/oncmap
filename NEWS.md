@@ -1,3 +1,11 @@
+# oncmap 0.1.11
+
+- FINDAIR accepts 4 digit years (`1/26/2026`) as well as 2 digit ones
+  (`1/26/26`). `datetime_format` can list alternatives separated by `|`, tried
+  in order for each row.
+- `oncmap::read_input()` and `oncmap::process_eamd()` no longer fail with
+  "object 'input_formats' not found" when the package is not attached.
+
 # oncmap 0.1.10
 
 ## Format min_wait

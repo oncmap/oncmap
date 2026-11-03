@@ -43,7 +43,8 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
 
   # include/exclude formats based on parameters
   # default filtered_formats to built-in input_formats
-  filtered_formats <- input_formats
+  # (oncmap:: as lazy data is not visible from the namespace unless the package is attached)
+  filtered_formats <- oncmap::input_formats
   if (!is.null(formats_def)) {
     filtered_formats <- formats_def
   }
@@ -296,7 +297,13 @@ read_input <- function(infile, include_formats = NULL, exclude_formats = NULL,
       tmp_timestamp_infile <- sub("[+-][0-9][0-9]:[0-9][0-9]$", "", tmp_timestamp_infile)
     }
 
-    data$timestamp <- as.POSIXct(strptime(tmp_timestamp_infile, format = format$datetime_format, tz = "UTC"))
+    # datetime_format may list alternatives: each row takes the first that parses
+    data$timestamp <- .POSIXct(rep(NA_real_, nrow(data)), tz = "UTC")
+    for (datetime_format in strsplit(as.character(format$datetime_format), "|", fixed = TRUE)[[1]]) {
+      parsed <- as.POSIXct(strptime(tmp_timestamp_infile, format = datetime_format, tz = "UTC"))
+      unparsed <- is.na(data$timestamp)
+      data$timestamp[unparsed] <- parsed[unparsed]
+    }
     if (all(is.na(data$timestamp))) {
       log <- rbind(log, data.frame(format = format_name, message = "All timestamps are NA. Skipping this format"))
       next

@@ -26,6 +26,8 @@ Formats that mark manually entered actuations declare the column and its values 
 
 A format can set `min_wait` to override the regimen's minimum wait in `process_eamd()`. FINDAIR sets it to 0: its puffs are grouped into doses, so no wait applies between them.
 
+`datetime_format` can list alternatives separated by `|`, tried in order for each row. FINDAIR accepts 2 and 4 digit years (`1/26/26` and `1/26/2026`). List the 2 digit form first: `%Y` reads `1/26/26` as the year 0026, while `%y` rejects `1/26/2026`.
+
 ## ECAP OLD
 * Device ID column "Package ID"
 * No defined headers
